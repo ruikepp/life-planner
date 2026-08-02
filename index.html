@@ -120,6 +120,29 @@ textarea{resize:vertical;min-height:70px}
 .chat-input-bar{display:flex;gap:8px;padding:10px 0;border-top:1px solid var(--border)}
 .chat-input-bar textarea{flex:1;resize:none;border:1px solid var(--border-strong);border-radius:10px;padding:10px 14px;font-size:13px;font-family:inherit;min-height:42px;max-height:120px}
 .chat-input-bar textarea:focus{outline:none;border-color:var(--primary)}
+.growth-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:16px}
+.growth-tab{padding:10px 18px;font-size:13px;font-weight:500;color:var(--text-tertiary);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:var(--transition);white-space:nowrap}
+.growth-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+.growth-tab:hover{color:var(--text-secondary)}
+.snapshot-card{background:var(--surface);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:10px;border-left:4px solid var(--primary);transition:var(--transition)}
+.snapshot-card.auto{border-left-color:var(--text-tertiary);opacity:.85}
+.snapshot-card.manual{border-left-color:var(--accent)}
+.snapshot-card:hover{box-shadow:var(--shadow-md)}
+.snapshot-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.snapshot-metric{text-align:center;padding:6px 4px;background:var(--bg-tertiary);border-radius:6px}
+.snapshot-metric .val{font-size:14px;font-weight:700;color:var(--primary)}
+.snapshot-metric .lbl{font-size:10px;color:var(--text-tertiary);display:block;margin-top:2px}
+.snapshot-delta{font-size:11px;font-weight:600;margin-left:2px}
+.delta-up{color:var(--success)}.delta-down{color:var(--danger)}.delta-flat{color:var(--text-tertiary)}
+.decision-card{background:var(--surface);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:10px;border-left:4px solid var(--accent);transition:var(--transition)}
+.decision-card.reviewed{border-left-color:var(--success)}
+.decision-card:hover{box-shadow:var(--shadow-md)}
+.insight-card{background:var(--surface);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow);margin-bottom:8px;border-left:3px solid var(--purple);transition:var(--transition)}
+.insight-card:hover{box-shadow:var(--shadow-md)}
+.insight-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.insight-tag{font-size:10px;padding:2px 8px;border-radius:4px;background:var(--purple-light);color:var(--purple-dark);cursor:pointer;transition:var(--transition)}
+.insight-tag:hover{background:var(--purple);color:#fff}
+.insight-input-area{background:var(--surface);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:14px}
 </style>
 </head>
 <body>
@@ -144,6 +167,8 @@ textarea{resize:vertical;min-height:70px}
 <div class="nav-section-label">复盘</div>
 <div class="nav-item" data-page="review"><span class="nav-icon">&#x1f501;</span><span>复盘中心</span></div>
 <div class="nav-item" data-page="principles"><span class="nav-icon">&#x1f4a1;</span><span>核心原则</span></div>
+<div class="nav-section-label">成长</div>
+<div class="nav-item" data-page="growth"><span class="nav-icon">&#x1f331;</span><span>成长档案</span></div>
 <div class="nav-section-label">AI助手</div>
 <div class="nav-item" data-page="aichat"><span class="nav-icon">&#x1f4ac;</span><span>AI对话</span></div>
 </nav>
@@ -157,6 +182,7 @@ textarea{resize:vertical;min-height:70px}
 <div class="modal-overlay" id="trial-modal"><div class="modal"><h3>记录一次试错</h3><div><label>试错的领域/方向</label><input type="text" id="tr-field" placeholder="如：副业尝试、新技能学习、社交方式..."><label class="mt-12">你的假设是什么？</label><textarea id="tr-hypothesis" rows="2" placeholder="你预期会发生什么？"></textarea><label class="mt-12">实际结果</label><textarea id="tr-result" rows="2" placeholder="实际发生了什么？"></textarea><label class="mt-12">学到了什么？</label><textarea id="tr-lesson" rows="2" placeholder="这次试错教会了你什么？"></textarea><label class="mt-12">状态</label><select id="tr-status"><option value="fail">失败 - 没有达到预期</option><option value="learn">学习中 - 已复盘，待验证</option><option value="success">已转化 - 成为经验</option></select></div><div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveTrial()">保存</button></div></div></div>
 <div class="modal-overlay" id="backup-modal"><div class="modal"><h3>&#x1f4be; 数据备份设置</h3><div><div class="card" style="box-shadow:none;border:1px solid var(--border);margin-bottom:14px"><label>自动备份提醒频率</label><select id="bk-interval" class="mt-8"><option value="0">关闭提醒</option><option value="1">每天提醒</option><option value="7">每周提醒</option><option value="30">每月提醒</option></select><p class="text-xs text-muted mt-8">超过设定时间未导出备份时，打开应用会弹出提醒。</p></div><div class="card" style="box-shadow:none;border:1px solid var(--border);margin-bottom:14px"><div class="flex-between"><span class="text-sm text-secondary">上次备份时间</span><span id="bk-last" class="text-sm font-bold">从未备份</span></div><div class="flex-between mt-8"><span class="text-sm text-secondary">IndexedDB 双重存储</span><span id="bk-idb" class="tag tag-green">检测中...</span></div><div class="flex-between mt-8"><span class="text-sm text-secondary">数据条目数</span><span id="bk-count" class="text-sm font-bold">0</span></div></div><div class="tip-box"><strong>三层保护说明：</strong><br>1. localStorage — 日常存储，关闭浏览器不丢<br>2. IndexedDB — 双重备份，清缓存时自动恢复<br>3. 文件导出 — 换浏览器/换电脑时用，建议定期执行</div></div><div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">关闭</button><button class="btn btn-primary" onclick="doBackupNow()">&#x2b07; 立即备份</button></div></div></div>
 <div class="toast-container" id="toast-container"></div>
+<div class="modal-overlay" id="decision-modal"><div class="modal"><h3>&#x1f4dd; 记录一个决策</h3><div><label>决策标题</label><input type="text" id="dec-title" placeholder="如：决定从技术转向管理方向"><label class="mt-12">日期</label><input type="date" id="dec-date"><label class="mt-12">背景（当时的情况）</label><textarea id="dec-context" rows="2" placeholder="促使你做这个决定的外部环境和内在动机..."></textarea><label class="mt-12">你的理由</label><textarea id="dec-reasoning" rows="2" placeholder="为什么这样决定而不是那样？"></textarea><label class="mt-12">预期结果</label><textarea id="dec-expected" rows="2" placeholder="你预期这个决定会带来什么改变？多久能看到效果？"></textarea><label class="mt-12">计划复盘日期</label><input type="date" id="dec-review-date"></div><div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveDecision()">保存决策</button></div></div></div>
 <script>
 // ====== 页面模板生成 ======
 const PAGES = {
@@ -427,6 +453,14 @@ aichat:`<div class="page-header"><h2>AI 对话 <span class="badge badge-teal">�
 <button class="btn btn-outline" onclick="clearChatHistory()" title="清空对话">&#x1f5d1;</button>
 </div>
 </div>`
+},
+growth:`<div class="page-header"><h2>成长档案 <span class="badge badge-purple">第二大脑</span></h2><p>记录时间线、决策档案和认知洞察，让系统成为你的第二大脑</p></div>
+<div class="growth-tabs">
+<div class="growth-tab active" onclick="switchGrowthTab('timeline')">&#x1f4cd; 时间线</div>
+<div class="growth-tab" onclick="switchGrowthTab('decisions')">&#x1f4cb; 决策档案</div>
+<div class="growth-tab" onclick="switchGrowthTab('insights')">&#x1f4a1; 洞察积累</div>
+</div>
+<div id="growth-content"></div>`
 };
 
 // ====== 渲染页面到主内容区 ======
@@ -470,7 +504,7 @@ onPageEnter(item.dataset.page);
 })});
 
 function onPageEnter(page){switch(page){
-case'dashboard':renderDashboard();break;case'lifeclock':renderLifeClock();break;case'resource':renderResource();break;case'decade':renderDecade();break;case'fate':renderFate();break;case'time':renderTime();break;case'knowledge':renderKnowledge();break;case'path':renderPath();break;case'trial':renderTrial();break;case'intel':renderIntel();break;case'review':renderReview();break;case'aichat':renderAIChat();break}}
+case'dashboard':renderDashboard();break;case'lifeclock':renderLifeClock();break;case'resource':renderResource();break;case'decade':renderDecade();break;case'fate':renderFate();break;case'time':renderTime();break;case'knowledge':renderKnowledge();break;case'path':renderPath();break;case'trial':renderTrial();break;case'intel':renderIntel();break;case'review':renderReview();break;case'growth':renderGrowth();break;case'aichat':renderAIChat();break}}
 
 const charts={};function destroyChart(k){if(charts[k]){charts[k].destroy();delete charts[k]}}
 
@@ -549,6 +583,7 @@ destroyChart('sr');const ctx=document.getElementById('chart-status-radar');if(ct
 const sc=document.getElementById('status-summary');if(sc){sc.innerHTML=dims.map(d=>{const pct=Math.round(d.score/10*100);const tag=d.score>=8?'tag-green':d.score>=4?'tag-orange':d.score>0?'tag-orange':'tag-red';const txt=d.score>=8?'良好':d.score>=4?'进行中':d.score>0?'进行中':'待开始';return'<div style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 2px;border-radius:6px;transition:background 0.2s" onclick="gotoModule(\''+d.nav+'\')" onmouseover="this.style.background=\'var(--surface-2)\'" onmouseout="this.style.background=\'transparent\'"><span class="text-sm font-bold" style="min-width:64px">'+d.label+'</span><div class="progress-bar" style="flex:1;margin:0"><div class="progress-fill" style="width:'+pct+'%;background:'+(pct>=80?'var(--success)':pct>=40?'var(--accent)':'var(--danger)')+'"></div></div><span class="tag '+tag+'">'+txt+'</span><span class="text-xs text-muted" style="min-width:80px;text-align:right">'+d.tip+'</span></div>'}).join('')}
 // 渲染预警
 const al=document.getElementById('status-alerts');if(al){al.innerHTML=alerts.length?'<div class="tip-box tip-danger" style="margin-top:8px"><strong>&#x26a0; 需要关注：</strong><br>'+alerts.map(a=>'<div style="display:flex;align-items:center;gap:6px;margin-top:4px;cursor:pointer" onclick="gotoModule(\''+a.nav+'\')"><span class="text-sm">'+a.msg+'</span><span class="tag tag-blue" style="font-size:10px">去完善</span></div>').join('')+'</div>':'<div class="tip-box tip-success"><strong>&#x2714; 各模块状态良好，继续保持！</strong></div>'}}
+
 
 // ====== 人生时钟 ======
 function renderLifeClock(){const by=get('birthYear');if(!by){document.getElementById('lc-age').textContent='--';document.getElementById('lc-label').textContent='请先在总览页设置出生年份';return}const cy=new Date().getFullYear();const age=cy-by;const mx=80;const pr=Math.min(age/mx,1);document.getElementById('lc-age').textContent=age;let st='成长期',cl='#f59e0b';if(age>=50){st='收获期';cl='#8b5cf6'}else if(age>=35){st='黄金期';cl='#10b981'}else if(age>=22){st='奋斗期';cl='#3b82f6'}document.getElementById('lc-label').textContent=st;document.getElementById('lc-remaining').textContent='剩余 '+(mx-age)+' 年';const c=2*Math.PI*150;document.getElementById('lc-progress').setAttribute('stroke-dasharray',(c*pr)+' '+c);
@@ -699,6 +734,13 @@ const rv=get('reviews',[]);
 if(rv.length){const dc=rv.filter(r=>r.type==='daily').length;const wc=rv.filter(r=>r.type==='weekly').length;const mc=rv.filter(r=>r.type==='monthly').length;d.reviewStats='日复盘'+dc+'次,周复盘'+wc+'次,月复盘'+mc+'次';if(rv[0])d.lastReview=rv[0].type+'('+rv[0].date+'):'+Object.values(rv[0].answers).filter(v=>v).join(' / ')}
 const ck=get('checklist',[]);
 if(ck.length){const ci=['已计算时薪','有应急储备金','收入按四分法分配','有3年北极星目标','有10年规划','每天用1-3-5','学练比1:6以上','定期复盘','专业信息占比>60%','知道修炼阶段','有被动收入','用ROI思维评估投入'];d.checklist=ck.length+'/12项已完成：'+ck.map(i=>ci[i]).join('; ')}
+// 11. 成长档案
+const snaps=get('snapshots',[]);
+if(snaps.length>1){const latest=snaps[snaps.length-1].metrics;const first=snaps[0].metrics;d.growthTrend='从'+snaps[0].date+'至今，收入'+first.income+'→'+latest.income+'元，应急金'+first.emergencyFund+'→'+latest.emergencyFund+'元，技能'+first.knowledgeCount+'→'+latest.knowledgeCount+'个，复盘'+first.reviewCount+'→'+latest.reviewCount+'次'}
+const dc=get('decisions',[]);
+if(dc.length){const pending=dc.filter(x=>x.status==='pending').length;d.decisions=dc.length+'条决策记录（'+pending+'条待验证）。最近：'+dc.slice(0,3).map(x=>x.title+'（'+x.status+'）'+(x.actual?'实际:'+x.actual:'')).join('; ')}
+const ins=get('insights',[]);
+if(ins.length)d.insights=ins.length+'条洞察记录。最近：'+ins.slice(0,5).map(x=>x.content+(x.tags&&x.tags.length?'['+x.tags.join(',')+']':'')).join(' | ');
 return d;
 }
 function buildAIPrompt(d,style){
@@ -892,6 +934,7 @@ async function sendChatMessage(){
     showToast('请先在「命运改变法则」页面填写 DeepSeek API Key','warning');
     return;
   }
+  // Add user message
   chatHistory=get('aiChatHistory',[]);
   if(chatHistory.length===0){
     chatHistory.push({role:'system',content:'对话已开始。AI教练将基于你的人生规划数据回答问题。'});
@@ -899,14 +942,17 @@ async function sendChatMessage(){
   chatHistory.push({role:'user',content:text});
   set('aiChatHistory',chatHistory);
   inp.value='';autoResize(inp);
+  // Render
   const msgEl=document.getElementById('chat-messages');
   if(chatHistory.length<=2){msgEl.innerHTML=''}
   msgEl.innerHTML+=renderChatMsg({role:'user',content:text});
+  // Typing indicator
   const typing=document.createElement('div');
   typing.className='chat-typing';typing.id='chat-typing';
   typing.innerHTML='<span></span><span></span><span></span>';
   msgEl.appendChild(typing);
   msgEl.scrollTop=msgEl.scrollHeight;
+  // Build messages for API
   const allData=collectAllData();
   const dataPoints=Object.keys(allData).length;
   const dataContext=buildChatDataContext(allData);
@@ -916,6 +962,7 @@ async function sendChatMessage(){
     {role:'system',content:'你是一位基于柏永辉《我的第一本人生规划手册》理念的人生规划教练。你的风格：'+styleDesc+'。请用中文回答，使用Markdown格式。回答必须基于用户的真实数据，不要编造未提供的信息。如果数据不足以回答，请引导用户去对应模块补充。回答尽量简洁实用，给出可执行的建议。'},
     {role:'system',content:'以下是用户的完整人生规划数据（共'+dataPoints+'个数据点）：\n\n'+dataContext}
   ];
+  // Include recent conversation (last 10 messages to keep context manageable)
   const recentMsgs=chatHistory.slice(-10).filter(m=>m.role!=='system');
   apiMessages.push(...recentMsgs.map(m=>({role:m.role,content:m.content})));
   try{
@@ -929,6 +976,7 @@ async function sendChatMessage(){
     set('aiChatHistory',chatHistory);
     msgEl.innerHTML+=renderChatMsg({role:'assistant',content:reply});
     msgEl.scrollTop=msgEl.scrollHeight;
+    // Hide quick buttons after first exchange
     const qk=document.getElementById('chat-quick');
     if(qk&&chatHistory.length>3)qk.style.display='none';
   }catch(e){
@@ -973,6 +1021,9 @@ function buildChatDataContext(d){
   if(d.reviewStats)lines.push('复盘统计：'+d.reviewStats);
   if(d.lastReview)lines.push('最近一次复盘：'+d.lastReview);
   if(d.checklist)lines.push('检查清单：'+d.checklist);
+  if(d.growthTrend)lines.push('成长趋势：'+d.growthTrend);
+  if(d.decisions)lines.push('决策档案：'+d.decisions);
+  if(d.insights)lines.push('洞察记录：'+d.insights);
   return lines.length?lines.join('\n'):'（用户尚未填写任何数据，请引导用户先去总览仪表盘填写基本信息）';
 }
 function clearChatHistory(){
@@ -1045,10 +1096,156 @@ function renderGrowthChart(){destroyChart('gc');const ctx=document.getElementByI
 
 function closeModal(){document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('show'))}
 
+// ====== 成长档案（记忆层）======
+function renderGrowth(){switchGrowthTab('timeline')}
+function switchGrowthTab(tab){
+  document.querySelectorAll('.growth-tab').forEach(function(t,i){
+    t.classList.toggle('active',['timeline','decisions','insights'][i]===tab);
+  });
+  var c=document.getElementById('growth-content');if(!c)return;
+  if(tab==='timeline'){c.innerHTML=timelineTabHTML();renderTimelineList()}
+  else if(tab==='decisions'){c.innerHTML=decisionsTabHTML();renderDecisionsList()}
+  else if(tab==='insights'){c.innerHTML=insightsTabHTML();renderInsightsList('')}
+}
+function getDaysAgo(ts){var days=Math.floor((Date.now()-ts)/86400000);if(days===0)return '今天';if(days===1)return '昨天';if(days<7)return days+'天前';if(days<30)return Math.floor(days/7)+'周前';return Math.floor(days/30)+'月前'}
+
+// 时间线快照
+function captureSnapshotMetrics(){
+  var by=get('birthYear');var inc=get('monthlyIncome',0);var ef=get('efSaved',0);
+  var ps=get('pathStage','');var tk=get('tasks',{main:[],side:[],mini:[]});
+  var allT=[].concat(tk.main||[],tk.side||[],tk.mini||[]);
+  var tDone=allT.filter(function(t){return t.done}).length;
+  var ki=get('knowledgeItems',[]);var km=get('knowledgeMetrics',{});
+  var tr=get('trials',[]);var rv=get('reviews',[]);
+  var ck=get('checklist',[]);var ins=get('insights',[]);
+  return{age:by?new Date().getFullYear()-parseInt(by):0,income:inc||0,emergencyFund:ef||0,pathStage:ps||'',taskTotal:allT.length,taskDone:tDone,knowledgeCount:ki.length,learnHours:km.learn||0,practiceHours:km.practice||0,trialCount:tr.length,reviewCount:rv.length,checklistCount:ck.length,insightCount:ins.length}
+}
+function autoSnapshot(){
+  var snaps=get('snapshots',[]);
+  if(snaps.length>0){var last=snaps[snaps.length-1];var days=(Date.now()-last.timestamp)/86400000;if(days<7)return}
+  takeSnapshot(false,'')
+}
+function takeSnapshot(manual,note){
+  var m=captureSnapshotMetrics();var snaps=get('snapshots',[]);
+  snaps.push({date:new Date().toISOString().split('T')[0],timestamp:Date.now(),type:manual?'manual':'auto',note:note||'',metrics:m});
+  if(snaps.length>200)snaps=snaps.slice(-200);
+  set('snapshots',snaps)
+}
+function manualSnapshot(){
+  var note=prompt('给这次快照加个备注（可选）：','');if(note===null)return;
+  takeSnapshot(true,note);renderTimelineList();showToast('已记录当前状态')
+}
+function timelineTabHTML(){
+  return '<div class="flex-between mb-16"><span class="text-sm text-secondary">系统每周自动保存快照，也可手动记录重要节点</span><button class="btn btn-primary" onclick="manualSnapshot()">&#x1f4f7; 记录当前状态</button></div><div id="timeline-list"></div>'
+}
+function renderTimelineList(){
+  var snaps=get('snapshots',[]);var c=document.getElementById('timeline-list');if(!c)return;
+  if(!snaps.length){c.innerHTML='<div class="empty-state"><div class="icon">&#x1f4c8;</div><p>暂无快照记录</p><p class="text-xs">系统会在你使用应用时自动生成每周快照</p><p class="mt-12"><button class="btn btn-primary" onclick="manualSnapshot()">&#x1f4f7; 立即记录一次</button></p></div>';return}
+  var sorted=snaps.slice().reverse();
+  c.innerHTML=sorted.map(function(s,i){
+    var prev=sorted[i+1];var m=s.metrics;var pm=prev?prev.metrics:null;
+    var metrics=[
+      {lbl:'收入',val:m.income?m.income.toLocaleString():'-',d:pm?m.income-pm.income:null},
+      {lbl:'应急金',val:m.emergencyFund?m.emergencyFund.toLocaleString():'-',d:pm?m.emergencyFund-pm.emergencyFund:null},
+      {lbl:'修炼',val:m.pathStage||'-',d:pm&&pm.pathStage!==m.pathStage?pm.pathStage+'\u2192'+m.pathStage:null},
+      {lbl:'任务',val:m.taskDone+'/'+m.taskTotal,d:pm?m.taskDone-pm.taskDone:null},
+      {lbl:'技能',val:m.knowledgeCount,d:pm?m.knowledgeCount-pm.knowledgeCount:null},
+      {lbl:'学练',val:m.learnHours+'h/'+m.practiceHours+'h',d:pm?(m.learnHours+m.practiceHours)-(pm.learnHours+pm.practiceHours):null},
+      {lbl:'试错',val:m.trialCount,d:pm?m.trialCount-pm.trialCount:null},
+      {lbl:'复盘',val:m.reviewCount,d:pm?m.reviewCount-pm.reviewCount:null}
+    ];
+    var mHTML=metrics.map(function(x){
+      var delta='';
+      if(x.d!==null){
+        if(typeof x.d==='number'){
+          if(x.d>0)delta='<span class="snapshot-delta delta-up">\u2191'+x.d+'</span>';
+          else if(x.d<0)delta='<span class="snapshot-delta delta-down">\u2193'+Math.abs(x.d)+'</span>'
+        }else if(x.d){delta='<span class="snapshot-delta" style="color:var(--accent);font-size:10px">'+x.d+'</span>'}
+      }
+      return '<div class="snapshot-metric"><span class="val">'+x.val+'</span>'+delta+'<span class="lbl">'+x.lbl+'</span></div>'
+    }).join('');
+    var typeTag=s.type==='auto'?'<span class="tag tag-gray">自动</span>':'<span class="tag tag-orange">手动</span>';
+    var timeLabel=i===0?'<span class="tag tag-green">最新</span>':'<span class="text-xs text-muted">'+getDaysAgo(s.timestamp)+'</span>';
+    return '<div class="snapshot-card '+(s.type==='auto'?'auto':'manual')+'"><div class="flex-between"><div><span class="font-bold">'+s.date+'</span> '+typeTag+(s.note?'<span class="text-sm text-secondary" style="margin-left:8px">'+s.note+'</span>':'')+'</div>'+timeLabel+'</div><div class="snapshot-metrics">'+mHTML+'</div></div>'
+  }).join('')
+}
+
+// 决策档案
+function decisionsTabHTML(){
+  return '<div class="flex-between mb-16"><span class="text-sm text-secondary">记录重要决策的背景和预期，事后回看验证判断</span><button class="btn btn-primary" onclick="openDecisionModal()">&#x1f4dd; 记录决策</button></div><div id="decisions-list"></div>'
+}
+function openDecisionModal(){
+  document.getElementById('dec-title').value='';document.getElementById('dec-date').value=new Date().toISOString().split('T')[0];
+  ['dec-context','dec-reasoning','dec-expected','dec-review-date'].forEach(function(id){document.getElementById(id).value=''});
+  document.getElementById('decision-modal').classList.add('show')
+}
+function saveDecision(){
+  var title=document.getElementById('dec-title').value.trim();if(!title){showToast('请填写决策标题','error');return}
+  var dc=get('decisions',[]);
+  dc.unshift({id:Date.now().toString(),title:title,date:document.getElementById('dec-date').value,context:document.getElementById('dec-context').value.trim(),reasoning:document.getElementById('dec-reasoning').value.trim(),expected:document.getElementById('dec-expected').value.trim(),reviewDate:document.getElementById('dec-review-date').value,status:'pending',actual:''});
+  set('decisions',dc);closeModal();renderDecisionsList();showToast('决策已记录')
+}
+function reviewDecision(id){
+  var dc=get('decisions',[]);var d=dc.find(function(x){return x.id===id});if(!d)return;
+  var actual=prompt('实际结果是什么？\n（对比当时的预期：'+(d.expected||'无')+'）',d.actual||'');
+  if(actual===null)return;
+  d.actual=actual;d.status='reviewed';d.reviewedDate=new Date().toISOString().split('T')[0];
+  set('decisions',dc);renderDecisionsList();showToast('决策已复盘')
+}
+function deleteDecision(id){
+  if(!confirm('确定删除这条决策记录？'))return;
+  set('decisions',get('decisions',[]).filter(function(x){return x.id!==id}));renderDecisionsList();showToast('已删除')
+}
+function renderDecisionsList(){
+  var dc=get('decisions',[]);var c=document.getElementById('decisions-list');if(!c)return;
+  if(!dc.length){c.innerHTML='<div class="empty-state"><div class="icon">&#x1f4cb;</div><p>暂无决策记录</p><p class="text-xs">记录重要决策的背景和预期，定期回看验证</p></div>';return}
+  c.innerHTML=dc.map(function(d){
+    var statusTag=d.status==='reviewed'?'<span class="tag tag-green">已复盘</span>':'<span class="tag tag-orange">待验证</span>';
+    var reviewHTML=d.status==='reviewed'?'<div class="mt-8"><span class="text-xs text-muted">实际结果：</span><span class="text-sm">'+(d.actual||'(未填写)')+'</span></div>':'';
+    var matchHTML='';
+    if(d.status==='reviewed'&&d.expected&&d.actual){
+      var matched=d.actual.indexOf(d.expected)>=0||d.expected.indexOf(d.actual)>=0;
+      matchHTML='<div class="mt-4"><span class="text-xs text-muted">对比：</span><span class="text-xs" style="color:'+(matched?'var(--success)':'var(--accent)')+'">'+(matched?'符合预期':'有偏差')+'</span></div>'
+    }
+    return '<div class="decision-card '+(d.status==='reviewed'?'reviewed':'')+'"><div class="flex-between"><div><span class="font-bold">'+d.title+'</span> '+statusTag+'</div><div class="flex gap-8"><button class="btn-mini" onclick="reviewDecision(\''+d.id+'\')">'+(d.status==='reviewed'?'\u{1f504} 更新':'\u2705 验证')+'</button><button class="btn-mini" onclick="deleteDecision(\''+d.id+'\')">&#x2715;</button></div></div><div class="text-xs text-muted mt-4">记录日期：'+d.date+(d.reviewedDate?' | 复盘日期：'+d.reviewedDate:'')+'</div>'+(d.context?'<div class="mt-8"><span class="text-xs text-muted">背景：</span><span class="text-sm">'+d.context+'</span></div>':'')+(d.reasoning?'<div class="mt-4"><span class="text-xs text-muted">理由：</span><span class="text-sm">'+d.reasoning+'</span></div>':'')+(d.expected?'<div class="mt-4"><span class="text-xs text-muted">预期：</span><span class="text-sm">'+d.expected+'</span></div>':'')+reviewHTML+matchHTML+'</div>'
+  }).join('')
+}
+
+// 洞察积累
+function insightsTabHTML(){
+  return '<div class="insight-input-area"><textarea id="insight-text" placeholder="突然想通了什么？记录下来..." rows="2" style="width:100%;border:1px solid var(--border-strong);border-radius:8px;padding:10px;font-size:13px;font-family:inherit;resize:none"></textarea><div class="flex gap-8 mt-8"><input id="insight-tags" placeholder="标签，逗号分隔（如：修炼,认知,执行）" style="flex:1;border:1px solid var(--border-strong);border-radius:8px;padding:8px 12px;font-size:13px"><button class="btn btn-primary" onclick="addInsight()">&#x2713; 记录</button></div></div><div class="flex gap-8 mb-12"><input id="insight-search" placeholder="搜索洞察内容或标签..." style="flex:1;border:1px solid var(--border-strong);border-radius:8px;padding:8px 12px;font-size:13px" oninput="renderInsightsList(this.value)"></div><div id="insights-list"></div>'
+}
+function addInsight(){
+  var text=document.getElementById('insight-text').value.trim();if(!text){showToast('请输入洞察内容','error');return}
+  var tagsStr=document.getElementById('insight-tags').value.trim();
+  var tags=tagsStr?tagsStr.split(/[,，、]/).map(function(t){return t.trim()}).filter(Boolean):[];
+  var ins=get('insights',[]);
+  ins.unshift({id:Date.now().toString(),content:text,tags:tags,date:new Date().toISOString().split('T')[0]});
+  set('insights',ins);document.getElementById('insight-text').value='';document.getElementById('insight-tags').value='';
+  renderInsightsList(document.getElementById('insight-search')?document.getElementById('insight-search').value:'');showToast('洞察已记录')
+}
+function deleteInsight(id){
+  set('insights',get('insights',[]).filter(function(x){return x.id!==id}));
+  renderInsightsList(document.getElementById('insight-search')?document.getElementById('insight-search').value:'');showToast('已删除')
+}
+function filterByTag(tag){var s=document.getElementById('insight-search');if(s){s.value=tag;renderInsightsList(tag)}}
+function renderInsightsList(query){
+  query=query||'';var ins=get('insights',[]);var c=document.getElementById('insights-list');if(!c)return;
+  if(!ins.length){c.innerHTML='<div class="empty-state"><div class="icon">&#x1f4a1;</div><p>暂无洞察记录</p><p class="text-xs">记录日常闪现的认知和灵感</p></div>';return}
+  var filtered=ins;
+  if(query){var q=query.toLowerCase();filtered=ins.filter(function(x){return x.content.toLowerCase().indexOf(q)>=0||(x.tags||[]).some(function(t){return t.toLowerCase().indexOf(q)>=0})})}
+  if(!filtered.length){c.innerHTML='<p class="text-center text-muted mt-16">没有匹配的洞察</p>';return}
+  c.innerHTML=filtered.map(function(x){
+    var tagsHTML=(x.tags||[]).map(function(t){return '<span class="insight-tag" onclick="filterByTag(\''+t.replace(/'/g,'')+'\')">'+t+'</span>'}).join('');
+    return '<div class="insight-card"><div class="flex-between"><div class="text-sm" style="flex:1;line-height:1.5">'+x.content+'</div><button class="btn-mini" onclick="deleteInsight(\''+x.id+'\')">&#x2715;</button></div>'+(tagsHTML?'<div class="insight-tags">'+tagsHTML+'</div>':'')+'<div class="text-xs text-muted mt-4">'+x.date+'</div></div>'
+  }).join('')
+}
+
 // ====== 初始化 ======
 loadStore();
 renderPage('dashboard');
 renderDashboard();
+autoSnapshot();
 checkAutoBackup();
 updateBackupInfo();
 document.getElementById('bk-interval').addEventListener('change',saveBackupSettings);
