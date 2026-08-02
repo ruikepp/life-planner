@@ -2,17 +2,9 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>人生规划生活助手 — 基于柏永辉《我的第一本人生规划手册》</title>
-<link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/svg+xml" href="icon.svg">
-<link rel="apple-touch-icon" href="icon-192.png">
-<meta name="theme-color" content="#2563eb">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="人生规划">
-<meta name="mobile-web-app-capable" content="yes">
-<script src="chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 :root{--bg:#f0f2f5;--surface:#fff;--surface-2:#f8f9fb;--surface-3:#f1f5f9;--primary:#2563eb;--primary-light:#dbeafe;--primary-dark:#1e40af;--accent:#f59e0b;--accent-light:#fef3c7;--accent-dark:#d97706;--success:#10b981;--success-light:#d1fae5;--success-dark:#059669;--danger:#ef4444;--danger-light:#fee2e2;--danger-dark:#dc2626;--purple:#8b5cf6;--purple-light:#ede9fe;--purple-dark:#6d28d9;--teal:#14b8a6;--text:#1e293b;--text-secondary:#64748b;--text-tertiary:#94a3b8;--border:#e2e8f0;--border-strong:#cbd5e1;--shadow:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);--shadow-md:0 4px 12px rgba(0,0,0,0.06);--shadow-lg:0 10px 40px rgba(0,0,0,0.10);--radius:14px;--radius-sm:8px;--radius-xs:6px;--transition:all 0.2s cubic-bezier(0.4,0,0.2,1)}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -41,6 +33,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 @keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 @keyframes pendulum{0%,100%{transform:rotate(-15deg)}50%{transform:rotate(15deg)}}
+@keyframes spin{to{transform:rotate(360deg)}}
 .page-header{margin-bottom:24px}.page-header h2{font-size:22px;font-weight:700;margin-bottom:4px}.page-header p{color:var(--text-secondary);font-size:13px}
 .card{background:var(--surface);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);margin-bottom:18px;transition:var(--transition)}.card:hover{box-shadow:var(--shadow-md)}
 .card-title{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
@@ -243,8 +236,25 @@ fate:`<div class="page-header"><h2>命运改变法则</h2><p>想要改变自己�
 <label>你目前能识别的「一鸣惊人」机会有哪些？</label><textarea id="fate-opportunities" rows="3" placeholder="如：行业新技术爆发、某个新兴市场、某个关键人脉..." onchange="saveFateInput('opportunities',this.value)"></textarea></div>
 <div class="fate-card"><div class="fate-num">5</div><h4>做什么事情做得顺手，最终决定你的发展方向</h4><p class="fate-desc">不是你选择做什么，而是你做得顺手的事情反过来塑造了你。留意那些你做得比别人轻松的事。</p>
 <label>你做得最顺手、最得心应手的事情是什么？</label><textarea id="fate-talent" rows="3" placeholder="如：数据分析、文字表达、人际沟通、逻辑推理..." onchange="saveFateInput('talent',this.value)"></textarea></div></div>
-<div class="card"><div class="card-title">&#x1f3af; 命运改变诊断</div><div id="fate-diagnosis"><div class="empty-state"><div class="icon">&#x1f3af;</div><p>填写上方五大法则后，此处将生成你的命运改变诊断报告</p></div></div>
-<button class="btn btn-primary mt-12" onclick="generateFateDiagnosis()">生成诊断报告</button></div>`,
+<div class="card"><div class="card-title">&#x1f3af; 命运改变诊断</div>
+<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+<button class="btn btn-primary" onclick="generateFateDiagnosis('rule')">&#x1f4cb; 生成基础诊断</button>
+<button class="btn btn-outline" onclick="generateFateDiagnosis('ai')">&#x1f9e0; AI深度分析</button>
+</div>
+<div id="fate-diagnosis"><div class="empty-state"><div class="icon">&#x1f3af;</div><p>填写上方五大法则后，点击按钮生成诊断报告</p><p class="text-xs text-secondary mt-8">「基础诊断」基于规则引擎即时生成<br>「AI深度分析」由AI根据你的具体情况做个性化深度分析（需配置API Key）</p></div></div>
+<div id="fate-ai-loading" style="display:none;text-align:center;padding:32px 0;">
+<div style="display:inline-block;width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+<p class="mt-12 text-secondary">AI正在分析你的命运改变路径...</p></div>
+<div id="fate-ai-result"></div></div>
+<div class="card" style="border-left:4px solid var(--teal);">
+<div class="card-title">&#x1f527; AI分析设置</div>
+<p class="text-sm text-secondary mb-12">AI深度分析使用 Google Gemini（免费）。你需要获取一个 API Key 并填入下方。</p>
+<div class="grid-2">
+<div><label>Gemini API Key</label><input type="password" id="gemini-key" placeholder="AIza..." onchange="saveGeminiKey(this.value)"><p class="text-xs text-secondary mt-4"><a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--primary);">点击免费获取 API Key &rarr;</a></p></div>
+<div><label>分析语言风格</label><select id="gemini-style" onchange="saveGeminiStyle(this.value)"><option value="direct">直接犀利（推荐）- 直指问题，不绕弯子</option><option value="encouraging">温和鼓励 - 肯定优点，逐步引导</option><option value="strategic">战略教练 - 聚焦长期策略和资源配比</option></select></div>
+</div>
+<div class="tip-box mt-12"><strong>隐私说明：</strong>API Key 存在你浏览器本地（localStorage），不会上传到任何服务器。你的数据仅发送给 Google Gemini API 进行分析，不被存储。</div>
+</div>`,
 time:`<div class="page-header"><h2>时间管理</h2><p>年计划做战略 -> 月计划做统筹 -> 日计划做执行</p></div>
 <div class="card"><div class="card-title">&#x23f3; 规划时间投入原则（10%）</div><div class="grid-4">
 <div class="principle-card"><div class="ptitle">十年规划</div><div class="pdesc">用 1 年时间思考</div><div class="pval">1 年</div></div>
@@ -477,10 +487,147 @@ function saveDecadeDiary(){const ds=get('decadeDiaries',[]);ds.unshift({date:doc
 function deleteDecadeDiary(i){const d=get('decadeDiaries',[]);d.splice(i,1);set('decadeDiaries',d);renderDecadeDiary()}
 
 // ====== 命运改变法则 ======
-function renderFate(){const fi=get('fateInputs',{});if(fi.thinking)document.getElementById('fate-thinking').value=fi.thinking;if(fi.thinkingScore)document.getElementById('fate-thinking-score').value=fi.thinkingScore;if(fi.fixedCost)document.getElementById('fate-fixed-cost').value=fi.fixedCost;if(fi.debts)document.getElementById('fate-debts').value=fi.debts;if(fi.opportunities)document.getElementById('fate-opportunities').value=fi.opportunities;if(fi.talent)document.getElementById('fate-talent').value=fi.talent;calcFateCostRatio()}
 function saveFateInput(k,v){const fi=get('fateInputs',{});fi[k]=v;set('fateInputs',fi);if(k==='fixedCost')calcFateCostRatio()}
 function calcFateCostRatio(){const c=parseInt(document.getElementById('fate-fixed-cost').value)||0;const inc=get('monthlyIncome',0);if(c>0&&inc>0){const r=Math.round(c/inc*100);document.getElementById('fate-cost-ratio').value=r+'%';const a=document.getElementById('fate-cost-advice');if(r>50)a.innerHTML='<div class="tip-box tip-danger"><strong>&#x26a0; 危险：</strong>固定开支占比超过 50%，你的行动自由度极低。建议大幅削减开支。</div>';else if(r>40)a.innerHTML='<div class="tip-box"><strong>&#x26a0; 警告：</strong>固定开支占比偏高，需控制开支增长。</div>';else if(r>25)a.innerHTML='<div class="tip-box tip-success"><strong>&#x2714; 适中：</strong>开支比例合理，保留了一定的行动自由度。</div>';else a.innerHTML='<div class="tip-box tip-success"><strong>&#x2714; 优秀：</strong>开支比例很低，你有充足的资源用于修炼和投资。</div>'}}
-function generateFateDiagnosis(){const fi=get('fateInputs',{});const f=Object.keys(fi).filter(k=>fi[k]).length;if(f<3){showToast('请至少填写3项内容再生成诊断','warning');return}const inc=get('monthlyIncome',0);const c=parseInt(fi.fixedCost)||0;const th=fi.thinking||'未评估';const sc=parseInt(fi.thinkingScore)||0;let h='<div class="card" style="border-left:4px solid var(--purple);"><div class="card-title">&#x1f4cb; 命运改变诊断报告</div>';h+='<div class="fate-card"><h4>1. 思维模式评估</h4><p class="fate-desc">当前思维：<strong>'+th+'</strong>，自评得分：<strong>'+sc+'/10</strong></p>';if(sc<5)h+='<div class="tip-box tip-danger"><strong>建议：</strong>你的思维仍偏向语文思维，建议开始用具体数字量化每一个目标。</div>';else if(sc<8)h+='<div class="tip-box"><strong>建议：</strong>已进入过渡期，继续强化用数字说话的习惯。</div>';else h+='<div class="tip-box tip-success"><strong>优秀：</strong>你已具备数学思维，能用量化数据支撑决策。</div>';h+='</div>';if(c>0&&inc>0){const r=Math.round(c/inc*100);h+='<div class="fate-card"><h4>2. 开支自由度评估</h4><p class="fate-desc">月固定开支 '+c.toLocaleString()+' 元，占收入 '+r+'%</p>';if(r>40)h+='<div class="tip-box tip-danger"><strong>建议：</strong>你的行动范围被高开支锁死，降低固定开支是当务之急。</div>';else h+='<div class="tip-box tip-success"><strong>良好：</strong>开支比例可控，有足够自由度进行修炼和投资。</div>';h+='</div>'}h+='<div class="fate-card"><h4>3. 人生债清单</h4><p class="fate-desc">'+(fi.debts||'未填写')+'</p><div class="tip-box"><strong>提醒：</strong>这些「债」不会消失，制定还债计划，越早还清代价越小。</div></div>';h+='<div class="fate-card"><h4>4. 机会识别</h4><p class="fate-desc">'+(fi.opportunities||'未填写')+'</p><div class="tip-box"><strong>建议：</strong>为识别到的机会提前积累能力，机会只青睐有准备的人。</div></div>';h+='<div class="fate-card"><h4>5. 天赋方向</h4><p class="fate-desc">'+(fi.talent||'未填写')+'</p><div class="tip-box tip-success"><strong>建议：</strong>在做得顺手的事情上深耕，这是你的核心竞争力来源。</div></div>';h+='</div>';document.getElementById('fate-diagnosis').innerHTML=h;showToast('诊断报告已生成')}
+function generateFateDiagnosis(mode){const fi=get('fateInputs',{});const f=Object.keys(fi).filter(k=>fi[k]).length;if(f<3){showToast('请至少填写3项内容再生成诊断','warning');return}
+if(mode==='ai'){generateFateAI(fi);return}
+generateFateRule(fi)}
+function generateFateRule(fi){
+const inc=get('monthlyIncome',0);const c=parseInt(fi.fixedCost)||0;const th=fi.thinking||'未评估';const sc=parseInt(fi.thinkingScore)||0;
+let h='<div class="card" style="border-left:4px solid var(--purple);"><div class="card-title">&#x1f4cb; 命运改变诊断报告（基础版）</div>';
+const scores={total:0,items:[]};
+h+='<div class="fate-card"><h4>1. 思维模式评估</h4><p class="fate-desc">当前思维：<strong>'+th+'</strong>，自评得分：<strong>'+sc+'/10</strong></p>';
+let ts=0;if(th==='数学思维')ts=10;else if(th==='过渡中')ts=6;else ts=3;
+if(sc>0)ts=Math.round((ts+sc)/2);
+scores.items.push({name:'思维模式',score:ts,max:10});
+if(ts<5)h+='<div class="tip-box tip-danger"><strong>核心问题：</strong>你仍处于「语文思维」阶段——「还行」「差不多」「马马虎虎」。<br><strong>诊断：</strong>你的目标缺乏量化标准，无法衡量进度，也就无法判断方向是否正确。<br><strong>行动建议：</strong>从今天起，把每一个目标翻译成数字。不要说「提升收入」，要说「月收入从'+inc.toLocaleString()+'提升到'+(inc*1.2).toFixed(0).toLocaleString()+'」。每周检查一次数字是否在前进。<br><strong>书中依据：</strong>「不能用数字量化的目标，就是耍流氓。」</div>';
+else if(ts<8)h+='<div class="tip-box"><strong>状态：</strong>你正在从语文思维向数学思维过渡，方向对了。<br><strong>诊断：</strong>你需要更系统地建立量化习惯——不只量化收入，还要量化学习时长、练习时长、开支比例、试错次数。<br><strong>行动建议：</strong>使用本应用的「知识修炼」模块记录学练比，使用「资源配置」模块追踪开支比例，用数字驱动决策。<br><strong>书中依据：</strong>「信息只有经过数据化处理，才能指导决策。」</div>';
+else h+='<div class="tip-box tip-success"><strong>优秀：</strong>你已具备数学思维，能用量化数据支撑决策。<br><strong>诊断：</strong>你的思维模式已经走在正确轨道上，关键在于持续深化——从个人量化扩展到行业量化、市场量化。<br><strong>行动建议：</strong>开始用量化思维分析你的行业趋势和竞争对手，用数据驱动战略决策。</div>';
+h+='</div>';
+if(c>0&&inc>0){const r=Math.round(c/inc*100);const free=inc-c;h+='<div class="fate-card"><h4>2. 开支自由度评估</h4><p class="fate-desc">月固定开支 '+c.toLocaleString()+' 元，占收入 '+r+'%，剩余可支配 '+free.toLocaleString()+' 元</p>';
+let fs=0;if(r<=25)fs=10;else if(r<=35)fs=8;else if(r<=50)fs=5;else if(r<=65)fs=3;else fs=1;
+scores.items.push({name:'开支自由度',score:fs,max:10});
+if(r>50)h+='<div class="tip-box tip-danger"><strong>危险信号：</strong>固定开支占收入 '+r+'%，你的行动自由度被严重压缩。<br><strong>诊断：</strong>你每月只剩 '+free.toLocaleString()+' 元可自由支配。这意味着：①无法投资学习（修炼停滞）②无法承受试错（不敢冒险）③应急储备金积累极慢（抗风险能力低）。你被「开支枷锁」锁住了。<br><strong>行动建议：</strong>列出所有固定开支，逐项标记「必需/非必需/可削减」。目标：3个月内将比例降至 40% 以下。优先削减：订阅服务、非必要消费、社交应酬。<br><strong>书中依据：</strong>「固定开支决定了你的行动范围。」</div>';
+else if(r>35)h+='<div class="tip-box"><strong>警告：</strong>开支占比偏高，行动自由度受限。<br><strong>诊断：</strong>每月可支配 '+free.toLocaleString()+' 元。勉强能维持学习和投资，但试错空间不足。一旦遇到意外支出，修炼节奏会被打乱。<br><strong>行动建议：</strong>继续压缩非必要开支，将可支配比例提升到 60% 以上。把省下的钱按 10%学习/20%保险/30%投资 分配。</div>';
+else h+='<div class="tip-box tip-success"><strong>良好：</strong>开支比例可控，每月有 '+free.toLocaleString()+' 元自由支配。<br><strong>诊断：</strong>你有充足的资源用于修炼和投资，试错空间充足。<br><strong>行动建议：</strong>确保这笔钱被有效利用——不要因为「有钱花」就放松修炼。按书中四分法严格分配：10%种子钱投资学习、20%保险钱建应急金、30%投资钱、40%生活钱。</div>';
+h+='</div>'}else{h+='<div class="fate-card"><h4>2. 开支自由度评估</h4><p class="text-secondary text-sm">未填写开支数据，跳过此项评估。请在总览仪表盘填写月收入，并在命运改变法则中填写月固定开支。</p></div>'}
+const debts=(fi.debts||'').trim();h+='<div class="fate-card"><h4>3. 人生债清单分析</h4>';
+if(debts){const debtList=debts.split(/[;；,，、\n]/).map(s=>s.trim()).filter(s=>s.length>1);
+h+='<p class="fate-desc">识别到 <strong>'+debtList.length+'</strong> 项人生债：</p><ul style="margin:8px 0 8px 20px;">'+debtList.map(d=>'<li style="margin:4px 0;">'+d+'</li>').join('')+'</ul>';
+let ds=8;if(debtList.length<=2)ds=8;else if(debtList.length<=4)ds=6;else ds=4;
+scores.items.push({name:'人生债认知',score:ds,max:10});
+h+='<div class="tip-box"><strong>诊断：</strong>你能识别出这些「债」，说明有自我觉察——这是还债的第一步。<br><strong>分类建议：</strong>把每项债标记为：①技能债（硬技能缺失）②认知债（思维盲区）③健康债（身体透支）④人际债（关系欠账）<br><strong>行动建议：</strong>不要试图一次还清所有债。按「代价大小 × 紧迫程度」排序，每月集中还一项。最该先还的债 = 不还的代价最大的那项。<br><strong>书中依据：</strong>「你过不去的债，将来迟早要还，而且利息很高。」</div>'}else{h+='<p class="text-secondary text-sm">未填写人生债清单。</p><div class="tip-box"><strong>提醒：</strong>每个人都有「债」。花10分钟认真想想：哪些技能你一直说要学但没学？哪些关系你一直在消耗但没有维护？哪些健康问题你一直在忽视？</div>'}
+h+='</div>';
+const ops=(fi.opportunities||'').trim();h+='<div class="fate-card"><h4>4. 机会识别能力</h4>';
+if(ops){const opList=ops.split(/[;；,，、\n]/).map(s=>s.trim()).filter(s=>s.length>1);
+h+='<p class="fate-desc">识别到 <strong>'+opList.length+'</strong> 个潜在机会：</p><ul style="margin:8px 0 8px 20px;">'+opList.map(o=>'<li style="margin:4px 0;">'+o+'</li>').join('')+'</ul>';
+let os=7;if(opList.length>=3)os=8;
+scores.items.push({name:'机会识别',score:os,max:10});
+h+='<div class="tip-box"><strong>诊断：</strong>你能识别出机会，说明你的「情报系统」在运转。但识别 ≠ 抓住。<br><strong>行动建议：</strong>对每个机会评估：①这个机会的时间窗口有多长？②你需要什么能力才能抓住？③你现在距离这个能力还差多远？④如果现在开始准备，需要多久？<br>把答案写进「十年蓝图」模块，作为修炼方向。<br><strong>书中依据：</strong>「机会只青睐有准备的人。一鸣惊人的背后是十年的默默积累。」</div>'}else{h+='<p class="text-secondary text-sm">未填写机会识别。</p><div class="tip-box"><strong>提醒：</strong>如果你说不出任何机会，可能是你的情报系统出了问题。检查：你日常消费的信息中有多少是和你行业/收入相关的专业知识？</div>'}
+h+='</div>';
+const tal=(fi.talent||'').trim();h+='<div class="fate-card"><h4>5. 天赋方向定位</h4>';
+if(tal){const talList=tal.split(/[;；,，、\n]/).map(s=>s.trim()).filter(s=>s.length>1);
+h+='<p class="fate-desc">识别到 <strong>'+talList.length+'</strong> 项天赋/优势：</p><ul style="margin:8px 0 8px 20px;">'+talList.map(t=>'<li style="margin:4px 0;">'+t+'</li>').join('')+'</ul>';
+scores.items.push({name:'天赋定位',score:7,max:10});
+h+='<div class="tip-box tip-success"><strong>诊断：</strong>你对自己的优势有认知，这是方向感的基础。<br><strong>行动建议：</strong>在天赋方向上做「刻意练习」。用本应用的「知识修炼」模块追踪你在天赋领域的学练比。目标：在天赋领域达到行业前 20%。<br><strong>书中依据：</strong>「做得顺手的事情反过来塑造了你。不要逆天赋而行。」</div>'}else{h+='<p class="text-secondary text-sm">未填写天赋方向。</p><div class="tip-box"><strong>提醒：</strong>如果你不确定自己的天赋在哪，回顾：什么事情别人觉得难，你觉得容易？什么任务你做的时候会忘记时间？别人最常请你帮什么忙？</div>'}
+h+='</div>';
+scores.total=scores.items.reduce((s,i)=>s+i.score,0);const avgScore=Math.round(scores.total/scores.items.length*10)/10;
+h+='<div style="background:var(--bg-secondary);border-radius:var(--radius);padding:16px;margin-top:12px;"><h4 style="margin-bottom:8px;">&#x1f4ca; 综合评分</h4>';
+h+='<div style="font-size:28px;font-weight:700;color:'+(avgScore>=7?'var(--success)':avgScore>=5?'var(--accent)':'var(--danger)')+';">'+avgScore+'/10</div>';
+h+='<div style="margin-top:8px;">'+scores.items.map(i=>'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);"><span>'+i.name+'</span><span style="color:'+(i.score>=7?'var(--success)':i.score>=5?'var(--accent)':'var(--danger)')+';font-weight:600;">'+i.score+'/'+i.max+'</span></div>').join('')+'</div>';
+let overall='';
+if(avgScore>=7)overall='你的命运改变基础较好，关键在于持续执行和复盘。不要松懈。';
+else if(avgScore>=5)overall='你有一定基础但存在明显短板。优先解决得分最低的项，集中精力突破。';
+else overall='你的命运改变基础薄弱，需要从思维模式开始系统性转变。别灰心——识别问题就是改变的开始。';
+h+='<p class="mt-8 text-sm"><strong>总结：</strong>'+overall+'</p></div>';
+h+='</div>';
+document.getElementById('fate-diagnosis').innerHTML=h;document.getElementById('fate-ai-result').innerHTML='';
+showToast('基础诊断报告已生成')}
+function saveGeminiKey(v){set('geminiKey',v);showToast('API Key已保存')}
+function saveGeminiStyle(v){set('geminiStyle',v)}
+async function generateFateAI(fi){
+const key=get('geminiKey','');if(!key){showToast('请先在下方填写 Gemini API Key','warning');return}
+const style=get('geminiStyle','direct');
+const inc=get('monthlyIncome',0);const birthYear=get('birthYear','');let ageInfo='';if(birthYear){const age=new Date().getFullYear()-parseInt(birthYear);ageInfo='用户年龄约'+age+'岁，'}
+const incInfo=inc>0?('月收入'+inc.toLocaleString()+'元，'):('月收入未填写，');
+const costRatio=fi.fixedCost&&inc?Math.round(parseInt(fi.fixedCost)/inc*100)+'%':'未填写';
+const prompt=`你是一位基于柏永辉《我的第一本人生规划手册》理念的人生规划教练。请根据以下用户信息，生成一份深度命运改变诊断报告。
+
+${ageInfo}${incInfo}月固定开支${(fi.fixedCost||'未填写').toString()}元（占收入${costRatio}）。
+
+用户自评信息：
+1. 思维模式：${fi.thinking||'未填写'}（自评得分：${fi.thinkingScore||'未填写'}/10）
+2. 人生债清单：${fi.debts||'未填写'}
+3. 一鸣惊人机会：${fi.opportunities||'未填写'}
+4. 天赋方向：${fi.talent||'未填写'}
+
+分析要求（${style==='direct'?'直接犀利，直指问题，不绕弯子，用词要狠但准确':style==='encouraging'?'温和鼓励，先肯定优点，再逐步引导，语气温暖但不回避问题':'聚焦长期战略，关注资源配置、时间杠杆和复利效应'}）：
+
+请按以下结构输出（使用Markdown格式）：
+
+## 综合诊断
+用2-3句话概括用户当前的命运改变处境，指出最核心的问题。
+
+## 思维模式深度分析
+- 用户的思维模式是否匹配当前收入水平？
+- 具体哪些表现说明问题？（引用用户的回答）
+- 下一步思维升级的方向是什么？
+
+## 开支与自由度分析
+- 当前开支结构对命运改变的影响
+- 可支配资源是否足以支撑修炼计划？
+- 具体的开支优化建议（给出数字）
+
+## 人生债风险评估
+- 列出的「债」中，哪一项不还的代价最大？
+- 建议的还债优先级排序
+- 每项债的「利息」（拖延的后果）是什么？
+
+## 机会抓住概率评估
+- 用户识别的机会是否真实可行？
+- 抓住每个机会需要的前置条件
+- 当前能力与机会之间的差距有多大？
+- 建议的行动时间表
+
+## 天赋变现路径
+- 天赋如何转化为收入提升？
+- 在当前修炼阶段（时间换钱/技术换钱/资源换钱）如何利用天赋？
+- 具体的修炼方向建议
+
+## 90天行动清单
+给出5-7条具体的、可量化的、有时间节点的行动建议。每条建议必须包含：
+- 具体做什么
+- 达到什么数字目标
+- 什么时间完成
+
+## 警示与风险
+指出2-3个用户可能忽视的风险，用「如果你不...那么...」的句式。
+
+重要：所有建议必须基于「数学思维」——用具体数字说话，不要说「努力」「加油」这种空话。引用书中的核心理念（如10%规划原则、1:6学练比、四分法收入分配、时薪思维、基于现实修炼等）。`;
+const loadingEl=document.getElementById('fate-ai-loading');const resultEl=document.getElementById('fate-ai-result');const diagEl=document.getElementById('fate-diagnosis');
+diagEl.innerHTML='';resultEl.innerHTML='';loadingEl.style.display='block';
+try{
+const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.7,maxOutputTokens:4096}})});
+if(!res.ok){const err=await res.text();let msg='AI分析失败';if(res.status===400)msg='API Key无效或格式错误';else if(res.status===429)msg='请求频率超限，请稍后重试（免费版每分钟15次）';else msg='AI分析失败：'+res.status;showToast(msg,'error');loadingEl.style.display='none';return}
+const data=await res.json();const text=data.candidates?.[0]?.content?.parts?.[0]?.text||'AI未返回内容';
+loadingEl.style.display='none';
+resultEl.innerHTML='<div class="card" style="border-left:4px solid var(--teal);"><div class="card-title">&#x1f9e0; AI深度分析报告</div><div class="ai-report">'+markdownToHtml(text)+'</div><div style="text-align:right;margin-top:12px;"><button class="btn btn-outline" onclick="exportAIReport()">&#x2b07; 保存报告</button></div></div>';
+showToast('AI分析报告已生成')}catch(e){loadingEl.style.display='none';showToast('网络错误：'+e.message,'error')}
+}
+function markdownToHtml(md){
+let h=md;
+h=h.replace(/^## (.+)$/gm,'<h4 style="margin:16px 0 8px;color:var(--primary);">$1</h4>');
+h=h.replace(/^### (.+)$/gm,'<h5 style="margin:12px 0 6px;">$1</h5>');
+h=h.replace(/^\*\*([^*]+)\*\*/gm,'<strong>$1</strong>');
+h=h.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+h=h.replace(/^- (.+)$/gm,'<div style="padding:2px 0 2px 16px;border-left:2px solid var(--border);margin:4px 0;">$1</div>');
+const lines=h.split('\n');let result=[];let inList=false;for(let line of lines){if(line.startsWith('<div style="padding:2px')){if(!inList){result.push('<div style="margin:8px 0;">');inList=true}result.push(line)}else{if(inList){result.push('</div>');inList=false}result.push(line)}}
+if(inList)result.push('</div>');
+return result.join('\n')
+}
+function exportAIReport(){const el=document.getElementById('fate-ai-result');if(!el.innerHTML.trim()){showToast('没有可导出的报告','warning');return}
+const text=document.querySelector('.ai-report')?.innerText||'';const b=new Blob([text],{type:'text/plain;charset=utf-8'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='命运改变诊断报告-'+new Date().toISOString().split('T')[0]+'.txt';a.click();URL.revokeObjectURL(u);showToast('报告已导出')}
+function renderFate(){const fi=get('fateInputs',{});if(fi.thinking)document.getElementById('fate-thinking').value=fi.thinking;if(fi.thinkingScore)document.getElementById('fate-thinking-score').value=fi.thinkingScore;if(fi.fixedCost)document.getElementById('fate-fixed-cost').value=fi.fixedCost;if(fi.debts)document.getElementById('fate-debts').value=fi.debts;if(fi.opportunities)document.getElementById('fate-opportunities').value=fi.opportunities;if(fi.talent)document.getElementById('fate-talent').value=fi.talent;const gk=get('geminiKey','');if(gk)document.getElementById('gemini-key').value=gk;const gs=get('geminiStyle','direct');if(gs)document.getElementById('gemini-style').value=gs;calcFateCostRatio()}
 
 // ====== 时间管理 ======
 function renderTime(){const t=get('tasks',{main:[],side:[],mini:[]});renderTasks('main',t.main||[]);renderTasks('side',t.side||[]);renderTasks('mini',t.mini||[]);renderYearGoals();const mp=get('monthPlan',{});if(mp.main)document.getElementById('mp-main').value=mp.main;if(mp.cultivation)document.getElementById('mp-cultivation').value=mp.cultivation;if(mp.drop)document.getElementById('mp-drop').value=mp.drop}
@@ -548,8 +695,6 @@ renderDashboard();
 checkAutoBackup();
 updateBackupInfo();
 document.getElementById('bk-interval').addEventListener('change',saveBackupSettings);
-// PWA Service Worker 注册
-if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').then(()=>console.log('SW registered')).catch(e=>console.log('SW failed:',e))})}
 </script>
 </body>
 </html>
