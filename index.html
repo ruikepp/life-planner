@@ -239,21 +239,21 @@ fate:`<div class="page-header"><h2>命运改变法则</h2><p>想要改变自己�
 <div class="card"><div class="card-title">&#x1f3af; 命运改变诊断</div>
 <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
 <button class="btn btn-primary" onclick="generateFateDiagnosis('rule')">&#x1f4cb; 生成基础诊断</button>
-<button class="btn btn-outline" onclick="generateFateDiagnosis('ai')">&#x1f9e0; AI深度分析</button>
+<button class="btn btn-outline" onclick="generateFateDiagnosis('ai')">&#x1f9e0; AI深度分析（可选）</button>
 </div>
-<div id="fate-diagnosis"><div class="empty-state"><div class="icon">&#x1f3af;</div><p>填写上方五大法则后，点击按钮生成诊断报告</p><p class="text-xs text-secondary mt-8">「基础诊断」基于规则引擎即时生成<br>「AI深度分析」由AI根据你的具体情况做个性化深度分析（需配置API Key）</p></div></div>
+<div id="fate-diagnosis"><div class="empty-state"><div class="icon">&#x1f3af;</div><p>填写上方五大法则后，点击「生成基础诊断」即可获得报告</p><p class="text-xs text-secondary mt-8">基础诊断无需任何配置，基于规则引擎即时生成<br>AI深度分析为可选增强功能，需在下方填写 DeepSeek API Key</p></div></div>
 <div id="fate-ai-loading" style="display:none;text-align:center;padding:32px 0;">
 <div style="display:inline-block;width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
 <p class="mt-12 text-secondary">AI正在分析你的命运改变路径...</p></div>
 <div id="fate-ai-result"></div></div>
 <div class="card" style="border-left:4px solid var(--teal);">
-<div class="card-title">&#x1f527; AI分析设置</div>
-<p class="text-sm text-secondary mb-12">AI深度分析使用 Google Gemini（免费）。你需要获取一个 API Key 并填入下方。</p>
+<div class="card-title">&#x1f527; AI深度分析（可选）</div>
+<p class="text-sm text-secondary mb-12">基础诊断无需任何配置即可使用。AI深度分析为可选增强功能，接入 DeepSeek API，需自行申请 Key。不填也能正常使用基础诊断。</p>
 <div class="grid-2">
-<div><label>Gemini API Key</label><input type="password" id="gemini-key" placeholder="AIza..." onchange="saveGeminiKey(this.value)"><p class="text-xs text-secondary mt-4"><a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--primary);">点击免费获取 API Key &rarr;</a></p></div>
-<div><label>分析语言风格</label><select id="gemini-style" onchange="saveGeminiStyle(this.value)"><option value="direct">直接犀利（推荐）- 直指问题，不绕弯子</option><option value="encouraging">温和鼓励 - 肯定优点，逐步引导</option><option value="strategic">战略教练 - 聚焦长期策略和资源配比</option></select></div>
+<div><label>DeepSeek API Key</label><input type="password" id="ai-key" placeholder="sk-..." onchange="saveAIKey(this.value)"><p class="text-xs text-secondary mt-4"><a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:var(--primary);">前往 DeepSeek 获取 API Key &rarr;</a></p></div>
+<div><label>分析语言风格</label><select id="ai-style" onchange="saveAIStyle(this.value)"><option value="direct">直接犀利（推荐）- 直指问题，不绕弯子</option><option value="encouraging">温和鼓励 - 肯定优点，逐步引导</option><option value="strategic">战略教练 - 聚焦长期策略和资源配比</option></select></div>
 </div>
-<div class="tip-box mt-12"><strong>隐私说明：</strong>API Key 存在你浏览器本地（localStorage），不会上传到任何服务器。你的数据仅发送给 Google Gemini API 进行分析，不被存储。</div>
+<div class="tip-box mt-12"><strong>说明：</strong>AI深度分析是可选功能。不填 API Key 时，「生成基础诊断」完全可用。API Key 存在你浏览器本地（localStorage），不会上传到任何服务器。你的数据仅发送给 DeepSeek API 进行分析，不被存储。</div>
 </div>`,
 time:`<div class="page-header"><h2>时间管理</h2><p>年计划做战略 -> 月计划做统筹 -> 日计划做执行</p></div>
 <div class="card"><div class="card-title">&#x23f3; 规划时间投入原则（10%）</div><div class="grid-4">
@@ -543,11 +543,11 @@ h+='<p class="mt-8 text-sm"><strong>总结：</strong>'+overall+'</p></div>';
 h+='</div>';
 document.getElementById('fate-diagnosis').innerHTML=h;document.getElementById('fate-ai-result').innerHTML='';
 showToast('基础诊断报告已生成')}
-function saveGeminiKey(v){set('geminiKey',v);showToast('API Key已保存')}
-function saveGeminiStyle(v){set('geminiStyle',v)}
+function saveAIKey(v){set('aiKey',v);showToast('API Key已保存')}
+function saveAIStyle(v){set('aiStyle',v)}
 async function generateFateAI(fi){
-const key=get('geminiKey','');if(!key){showToast('请先在下方填写 Gemini API Key','warning');return}
-const style=get('geminiStyle','direct');
+const key=get('aiKey','');if(!key){showToast('请先在下方填写 DeepSeek API Key','warning');return}
+const style=get('aiStyle','direct');
 const inc=get('monthlyIncome',0);const birthYear=get('birthYear','');let ageInfo='';if(birthYear){const age=new Date().getFullYear()-parseInt(birthYear);ageInfo='用户年龄约'+age+'岁，'}
 const incInfo=inc>0?('月收入'+inc.toLocaleString()+'元，'):('月收入未填写，');
 const costRatio=fi.fixedCost&&inc?Math.round(parseInt(fi.fixedCost)/inc*100)+'%':'未填写';
@@ -607,9 +607,9 @@ ${ageInfo}${incInfo}月固定开支${(fi.fixedCost||'未填写').toString()}元�
 const loadingEl=document.getElementById('fate-ai-loading');const resultEl=document.getElementById('fate-ai-result');const diagEl=document.getElementById('fate-diagnosis');
 diagEl.innerHTML='';resultEl.innerHTML='';loadingEl.style.display='block';
 try{
-const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.7,maxOutputTokens:4096}})});
-if(!res.ok){const err=await res.text();let msg='AI分析失败';if(res.status===400)msg='API Key无效或格式错误';else if(res.status===429)msg='请求频率超限，请稍后重试（免费版每分钟15次）';else msg='AI分析失败：'+res.status;showToast(msg,'error');loadingEl.style.display='none';return}
-const data=await res.json();const text=data.candidates?.[0]?.content?.parts?.[0]?.text||'AI未返回内容';
+const res=await fetch('https://api.deepseek.com/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:'deepseek-chat',messages:[{role:'system',content:'你是一位基于柏永辉《我的第一本人生规划手册》理念的人生规划教练。请用中文回答，使用Markdown格式。'},{role:'user',content:prompt}],temperature:0.7,max_tokens:4096,stream:false})});
+if(!res.ok){const err=await res.text();let msg='AI分析失败';if(res.status===401)msg='API Key无效，请检查Key是否正确';else if(res.status===429)msg='请求频率超限，请稍后重试';else if(res.status===402)msg='API余额不足，请前往DeepSeek平台充值';else msg='AI分析失败：'+res.status;showToast(msg,'error');loadingEl.style.display='none';return}
+const data=await res.json();const text=data.choices?.[0]?.message?.content||'AI未返回内容';
 loadingEl.style.display='none';
 resultEl.innerHTML='<div class="card" style="border-left:4px solid var(--teal);"><div class="card-title">&#x1f9e0; AI深度分析报告</div><div class="ai-report">'+markdownToHtml(text)+'</div><div style="text-align:right;margin-top:12px;"><button class="btn btn-outline" onclick="exportAIReport()">&#x2b07; 保存报告</button></div></div>';
 showToast('AI分析报告已生成')}catch(e){loadingEl.style.display='none';showToast('网络错误：'+e.message,'error')}
@@ -627,7 +627,7 @@ return result.join('\n')
 }
 function exportAIReport(){const el=document.getElementById('fate-ai-result');if(!el.innerHTML.trim()){showToast('没有可导出的报告','warning');return}
 const text=document.querySelector('.ai-report')?.innerText||'';const b=new Blob([text],{type:'text/plain;charset=utf-8'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='命运改变诊断报告-'+new Date().toISOString().split('T')[0]+'.txt';a.click();URL.revokeObjectURL(u);showToast('报告已导出')}
-function renderFate(){const fi=get('fateInputs',{});if(fi.thinking)document.getElementById('fate-thinking').value=fi.thinking;if(fi.thinkingScore)document.getElementById('fate-thinking-score').value=fi.thinkingScore;if(fi.fixedCost)document.getElementById('fate-fixed-cost').value=fi.fixedCost;if(fi.debts)document.getElementById('fate-debts').value=fi.debts;if(fi.opportunities)document.getElementById('fate-opportunities').value=fi.opportunities;if(fi.talent)document.getElementById('fate-talent').value=fi.talent;const gk=get('geminiKey','');if(gk)document.getElementById('gemini-key').value=gk;const gs=get('geminiStyle','direct');if(gs)document.getElementById('gemini-style').value=gs;calcFateCostRatio()}
+function renderFate(){const fi=get('fateInputs',{});if(fi.thinking)document.getElementById('fate-thinking').value=fi.thinking;if(fi.thinkingScore)document.getElementById('fate-thinking-score').value=fi.thinkingScore;if(fi.fixedCost)document.getElementById('fate-fixed-cost').value=fi.fixedCost;if(fi.debts)document.getElementById('fate-debts').value=fi.debts;if(fi.opportunities)document.getElementById('fate-opportunities').value=fi.opportunities;if(fi.talent)document.getElementById('fate-talent').value=fi.talent;const ak=get('aiKey','');if(ak)document.getElementById('ai-key').value=ak;const as=get('aiStyle','direct');if(as)document.getElementById('ai-style').value=as;calcFateCostRatio()}
 
 // ====== 时间管理 ======
 function renderTime(){const t=get('tasks',{main:[],side:[],mini:[]});renderTasks('main',t.main||[]);renderTasks('side',t.side||[]);renderTasks('mini',t.mini||[]);renderYearGoals();const mp=get('monthPlan',{});if(mp.main)document.getElementById('mp-main').value=mp.main;if(mp.cultivation)document.getElementById('mp-cultivation').value=mp.cultivation;if(mp.drop)document.getElementById('mp-drop').value=mp.drop}
