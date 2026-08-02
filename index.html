@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>人生规划生活助手 — 基于柏永辉《我的第一本人生规划手册》</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="chart.umd.min.js"></script>
 <style>
 :root{--bg:#f0f2f5;--surface:#fff;--surface-2:#f8f9fb;--surface-3:#f1f5f9;--primary:#2563eb;--primary-light:#dbeafe;--primary-dark:#1e40af;--accent:#f59e0b;--accent-light:#fef3c7;--accent-dark:#d97706;--success:#10b981;--success-light:#d1fae5;--success-dark:#059669;--danger:#ef4444;--danger-light:#fee2e2;--danger-dark:#dc2626;--purple:#8b5cf6;--purple-light:#ede9fe;--purple-dark:#6d28d9;--teal:#14b8a6;--text:#1e293b;--text-secondary:#64748b;--text-tertiary:#94a3b8;--border:#e2e8f0;--border-strong:#cbd5e1;--shadow:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);--shadow-md:0 4px 12px rgba(0,0,0,0.06);--shadow-lg:0 10px 40px rgba(0,0,0,0.10);--radius:14px;--radius-sm:8px;--radius-xs:6px;--transition:all 0.2s cubic-bezier(0.4,0,0.2,1)}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -168,7 +168,14 @@ dashboard:`<div class="page-header"><h2>总览仪表盘</h2><p>基于「数学�
 <div class="flex gap-8 flex-center"><span class="tag tag-blue" style="min-width:36px;text-align:center">20%</span><span class="text-sm">保险钱 - 保障后防</span></div>
 <div class="flex gap-8 flex-center"><span class="tag tag-green" style="min-width:36px;text-align:center">30%</span><span class="text-sm">投资钱 - 创造被动收入</span></div>
 <div class="flex gap-8 flex-center"><span class="tag tag-purple" style="min-width:36px;text-align:center">40%</span><span class="text-sm">生活钱 - 日常开支</span></div>
-</div></div></div></div>`,
+</div></div></div>
+<div class="card"><div class="card-title">&#x1f4cb; 状态总结 <span class="badge badge-purple">全模块概览</span> <button class="btn btn-sm btn-outline" style="margin-left:auto" onclick="renderStatusSummary()">刷新总结</button></div>
+<div class="grid-2">
+<div class="chart-container-sm"><canvas id="chart-status-radar"></canvas></div>
+<div id="status-summary" style="display:flex;flex-direction:column;gap:6px;"></div>
+</div>
+<div id="status-alerts" style="margin-top:12px;"></div>
+</div></div>`,
 lifeclock:`<div class="page-header"><h2>人生时钟</h2><p>用「生命时钟模型」认清自己当前的人生规划位置 - 时光钟摆永不停歇</p></div>
 <div class="card"><div class="card-title">&#x23f1; 你的生命时钟</div><div class="life-clock-wrap"><div class="life-clock">
 <svg viewBox="0 0 340 340"><defs><linearGradient id="cg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs>
@@ -456,11 +463,56 @@ document.getElementById('qs-living').textContent=Math.round(inc*0.1)+'~'+Math.ro
 document.getElementById('qs-emergency').textContent=Math.round(inc*0.15*6).toLocaleString()+' 元';
 document.getElementById('qs-ratio').textContent='1:6 ~ 1:10';
 document.getElementById('qs-10yr').textContent=(inc*12*10).toLocaleString()+' 元';
-renderDashboardTasks();renderIncomeSplitChart(inc)}
+renderDashboardTasks();renderIncomeSplitChart(inc);renderStatusSummary()}
 
 function renderIncomeSplitChart(inc){destroyChart('is');const ctx=document.getElementById('chart-income-split');if(!ctx)return;charts.is=new Chart(ctx,{type:'doughnut',data:{labels:['种子钱 10%','保险钱 20%','投资钱 30%','生活钱 40%'],datasets:[{data:[inc*0.1,inc*0.2,inc*0.3,inc*0.4],backgroundColor:['#f59e0b','#3b82f6','#10b981','#8b5cf6'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},cutout:'55%'}})}
 
 function renderDashboardTasks(){const t=get('tasks',{main:[],side:[],mini:[]});const c=document.getElementById('dashboard-tasks');const all=[...(t.main||[]).map(x=>({...x,type:'main'})),...(t.side||[]).map(x=>({...x,type:'side'})),...(t.mini||[]).map(x=>({...x,type:'mini'}))];if(!all.length){c.innerHTML='<div class="empty-state"><div class="icon">&#x1f4dd;</div><p>前往「时间管理」添加今日任务</p></div>';return}c.innerHTML='<ul class="task-list">'+all.map(x=>'<li class="task-item '+(x.done?'completed':'')+'"><div class="task-check '+(x.done?'done':'')+'" onclick="toggleTask(\''+x.type+'\',\''+x.id+'\')"></div><div class="task-text">'+x.text+'</div><span class="task-type '+(x.type==='main'?'type-main':x.type==='side'?'type-side':'type-mini')+'">'+(x.type==='main'?'创造':x.type==='side'?'沟通':'琐碎')+'</span></li>').join('')+'</ul>'}
+
+// ====== 状态总结 ======
+function gotoModule(nav){
+document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+const ni=document.querySelector('[data-page="'+nav+'"]');if(ni)ni.classList.add('active');
+renderPage(nav);onPageEnter(nav)}
+function renderStatusSummary(){
+const dims=[];const alerts=[];
+const inc=get('monthlyIncome',0);const by=get('birthYear');
+// 1 基本信息
+const basicOk=by&&inc;dims.push({label:'基本设置',score:basicOk?10:0,nav:'dashboard',tip:basicOk?'已设置出生年份和收入':'未设置基本信息'});
+if(!basicOk)alerts.push({nav:'dashboard',msg:'请先填写出生年份和月收入'});
+// 2 命运改变
+const fi=get('fateInputs',{});const fiCount=Object.keys(fi).filter(k=>fi[k]).length;const fScore=Math.min(Math.round(fiCount/6*10),10);dims.push({label:'命运诊断',score:fScore,nav:'fate',tip:fiCount+'/6项已填'});
+if(fScore<5)alerts.push({nav:'fate',msg:'命运改变诊断仅填写'+fiCount+'/6项，建议补全'});
+// 3 资源配置
+const ef=get('efSaved',0);const efTg=inc>0?Math.round(inc*0.15*6):0;const eScore=efTg>0?Math.min(Math.round(ef/efTg*10),10):0;dims.push({label:'应急储备',score:eScore,nav:'resource',tip:ef>0?'已存'+ef.toLocaleString()+'元（目标'+efTg.toLocaleString()+'元）':'未记录应急储备金'});
+if(eScore===0&&inc>0)alerts.push({nav:'resource',msg:'尚未记录应急储备金（目标'+efTg.toLocaleString()+'元）'});
+// 4 十年蓝图
+const dd=get('decadeData',{});const ddCount=Object.keys(dd).length;const ns=get('northStar');const tg10=get('tenYearGoal');const dScore=Math.min(Math.round(((ns?3:0)+(tg10?3:0)+ddCount*0.4),10),10);dims.push({label:'十年蓝图',score:dScore,nav:'decade',tip:ddCount+'年已规划'+(ns?'，有北极星':'')});
+if(dScore<4)alerts.push({nav:'decade',msg:'十年蓝图规划不足，建议设定北极星目标和年度目标'});
+// 5 时间管理
+const tk=get('tasks',{main:[],side:[],mini:[]});const allT=[...(tk.main||[]),...(tk.side||[]),...(tk.mini||[])];const tDone=allT.filter(t=>t.done).length;const tScore=allT.length>0?Math.round(tDone/allT.length*10):0;dims.push({label:'任务执行',score:tScore,nav:'time',tip:allT.length>0?tDone+'/'+allT.length+'已完成':'暂无任务'});
+const mp=get('monthPlan',{});if(!mp.main&&!mp.cultivation&&!mp.drop)alerts.push({nav:'time',msg:'尚未制定月度计划'});
+// 6 知识修炼
+const km=get('knowledgeMetrics',{});const lr=km.learn||0;const pr=km.practice||0;const ki=get('knowledgeItems',[]);const kScore=Math.min(Math.round((ki.length*1.5+(lr>0?2:0)+(pr>0?2:0)),10),10);dims.push({label:'知识修炼',score:kScore,nav:'knowledge',tip:ki.length+'个技能'+(lr>0?'，学'+lr+'h/练'+pr+'h':'')});
+const rl=get('readingList',[]);const mz=get('mazeData',{});if(kScore<4)alerts.push({nav:'knowledge',msg:'知识修炼数据不足，建议添加技能项并记录学练时长'});
+// 7 修炼路径
+const ps=get('pathStage');dims.push({label:'修炼路径',score:ps?10:0,nav:'path',tip:ps?'第'+ps+'阶段':'未确定修炼阶段'});
+if(!ps)alerts.push({nav:'path',msg:'尚未确定修炼路径阶段'});
+// 8 试错资本
+const tr=get('trials',[]);const trScore=Math.min(Math.round(tr.length*1.5),10);dims.push({label:'试错记录',score:trScore,nav:'trial',tip:tr.length>0?tr.length+'次试错记录':'暂无试错记录'});
+if(trScore===0)alerts.push({nav:'trial',msg:'尚未记录任何试错经历，建议开始记录小成本试验'});
+// 9 情报系统
+const ia=get('intelAnswers',{});const aCount=Object.keys(ia).filter(k=>ia[k]&&ia[k].trim()).length;const iScore=Math.min(Math.round(aCount/10*10),10);dims.push({label:'情报系统',score:iScore,nav:'intel',tip:aCount+'/10题已答'});
+if(iScore<5)alerts.push({nav:'intel',msg:'情报系统仅回答'+aCount+'/10题，建议完善'});
+// 10 复盘
+const rv=get('reviews',[]);const ck=get('checklist',[]);const rScore=Math.min(Math.round(rv.length*0.5+ck.length*0.8),10);dims.push({label:'复盘检查',score:rScore,nav:'review',tip:rv.length+'次复盘，'+ck.length+'/12项检查'});
+if(rScore<4)alerts.push({nav:'review',msg:'复盘和检查清单完成度不足，建议定期复盘'});
+// 渲染雷达图
+destroyChart('sr');const ctx=document.getElementById('chart-status-radar');if(ctx){charts.sr=new Chart(ctx,{type:'radar',data:{labels:dims.map(d=>d.label),datasets:[{label:'完成度',data:dims.map(d=>d.score),backgroundColor:'rgba(37,99,235,0.15)',borderColor:'#2563eb',borderWidth:2,pointBackgroundColor:'#2563eb',pointRadius:4,pointHoverRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{min:0,max:10,ticks:{stepSize:2,font:{size:9}},pointLabels:{font:{size:10}},grid:{color:'#e2e8f0'},angleLines:{color:'#e2e8f0'}}}}})}
+// 渲染文字摘要
+const sc=document.getElementById('status-summary');if(sc){sc.innerHTML=dims.map(d=>{const pct=Math.round(d.score/10*100);const tag=d.score>=8?'tag-green':d.score>=4?'tag-orange':d.score>0?'tag-orange':'tag-red';const txt=d.score>=8?'良好':d.score>=4?'进行中':d.score>0?'进行中':'待开始';return'<div style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 2px;border-radius:6px;transition:background 0.2s" onclick="gotoModule(\''+d.nav+'\')" onmouseover="this.style.background=\'var(--surface-2)\'" onmouseout="this.style.background=\'transparent\'"><span class="text-sm font-bold" style="min-width:64px">'+d.label+'</span><div class="progress-bar" style="flex:1;margin:0"><div class="progress-fill" style="width:'+pct+'%;background:'+(pct>=80?'var(--success)':pct>=40?'var(--accent)':'var(--danger)')+'"></div></div><span class="tag '+tag+'">'+txt+'</span><span class="text-xs text-muted" style="min-width:80px;text-align:right">'+d.tip+'</span></div>'}).join('')}
+// 渲染预警
+const al=document.getElementById('status-alerts');if(al){al.innerHTML=alerts.length?'<div class="tip-box tip-danger" style="margin-top:8px"><strong>&#x26a0; 需要关注：</strong><br>'+alerts.map(a=>'<div style="display:flex;align-items:center;gap:6px;margin-top:4px;cursor:pointer" onclick="gotoModule(\''+a.nav+'\')"><span class="text-sm">'+a.msg+'</span><span class="tag tag-blue" style="font-size:10px">去完善</span></div>').join('')+'</div>':'<div class="tip-box tip-success"><strong>&#x2714; 各模块状态良好，继续保持！</strong></div>'}}
 
 // ====== 人生时钟 ======
 function renderLifeClock(){const by=get('birthYear');if(!by){document.getElementById('lc-age').textContent='--';document.getElementById('lc-label').textContent='请先在总览页设置出生年份';return}const cy=new Date().getFullYear();const age=cy-by;const mx=80;const pr=Math.min(age/mx,1);document.getElementById('lc-age').textContent=age;let st='成长期',cl='#f59e0b';if(age>=50){st='收获期';cl='#8b5cf6'}else if(age>=35){st='黄金期';cl='#10b981'}else if(age>=22){st='奋斗期';cl='#3b82f6'}document.getElementById('lc-label').textContent=st;document.getElementById('lc-remaining').textContent='剩余 '+(mx-age)+' 年';const c=2*Math.PI*150;document.getElementById('lc-progress').setAttribute('stroke-dasharray',(c*pr)+' '+c);
