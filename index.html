@@ -491,16 +491,14 @@ aichat:`<div class="page-header"><h2>AI 对话 <span class="badge badge-teal">�
 <button class="btn btn-primary" onclick="sendChatMessage()">&#x1f4ac; 发送</button>
 <button class="btn btn-outline" onclick="clearChatHistory()" title="清空对话">&#x1f5d1;</button>
 </div>
-</div>`
-},
+</div>`,
 growth:`<div class="page-header"><h2>成长档案 <span class="badge badge-purple">第二大脑</span></h2><p>记录时间线、决策档案和认知洞察，让系统成为你的第二大脑</p></div>
 <div class="growth-tabs">
 <div class="growth-tab active" onclick="switchGrowthTab('timeline')">&#x1f4cd; 时间线</div>
 <div class="growth-tab" onclick="switchGrowthTab('decisions')">&#x1f4cb; 决策档案</div>
 <div class="growth-tab" onclick="switchGrowthTab('insights')">&#x1f4a1; 洞察积累</div>
 </div>
-<div id="growth-content"></div>`
-},
+<div id="growth-content"></div>`,
 simulation:`<div class="page-header"><h2>战略推演 <span class="badge badge-orange">沙盘</span></h2><p>模拟未来场景、对比多条路径、检测系统性脆弱点</p></div>
 <div class="sim-tabs">
 <div class="sim-tab active" onclick="switchSimTab('scenario')">&#x1f52c; 情景模拟</div>
@@ -1376,7 +1374,7 @@ function runScenario(){
   r.innerHTML='<h4 style="font-size:13px;margin:16px 0 10px;color:var(--text-secondary)">&#x1f4ca; 推演结果（'+months+'个月后）</h4>'+
     '<div class="scenario-result">'+
     '<div class="scenario-result-item"><div class="rv '+(efMonthsCover>=6?'good':efMonthsCover>=3?'':'bad')+'">'+efMonthsCover+'</div><div class="lb">应急金覆盖月数</div><div class="delta '+(ef0>0&&efAfter>ef0?'delta-up':'delta-down')+'">'+(ef0>0?'从'+(fc>0?(ef0/fc).toFixed(1):0)+'月':'')+'</div></div>'+
-    '<div class="scenario-result-item"><div class="rv">'+efAfter.toLocaleString()+'</div><div class="lb">应急金总额(元)</div><div class="delta '+(efAfter>ef0?'delta-up':'delta-flat')+'">+('+monthlySaveTotal*months).toLocaleString()+'</div></div>'+
+    '<div class="scenario-result-item"><div class="rv">'+efAfter.toLocaleString()+'</div><div class="lb">应急金总额(元)</div><div class="delta '+(efAfter>ef0?'delta-up':'delta-flat')+'">+('+(monthlySaveTotal*months).toLocaleString()+'</div></div>'+
     '<div class="scenario-result-item"><div class="rv '+(efTargetMonths<=12?'good':efTargetMonths<=24?'':'bad')+'">'+(efTargetMonths>=999?'∞':efTargetMonths+'月')+'</div><div class="lb">达6个月储备目标</div><div class="lb">目标:'+efTarget.toLocaleString()+'元</div></div>'+
     '<div class="scenario-result-item"><div class="rv '+(monthlySurplus>0?'good':'bad')+'">'+monthlySurplus.toLocaleString()+'</div><div class="lb">月净盈余(元)</div></div>'+
     '<div class="scenario-result-item"><div class="rv">'+practiceHNeeded+'h</div><div class="lb">月需练习时长</div><div class="lb">比例'+ratio+':1</div></div>'+
