@@ -1,4 +1,4 @@
-const CACHE_NAME = 'life-planner-v2';
+const CACHE_NAME = 'life-planner-v3';
 const ASSETS = [
   './',
   './index.html',
