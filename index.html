@@ -218,12 +218,41 @@ textarea{resize:vertical;min-height:70px}
 .milestone-tl-item::before{content:'';position:absolute;left:-24px;top:4px;width:12px;height:12px;border-radius:50%;border:3px solid var(--primary);background:var(--surface)}
 .milestone-tl-item.done::before{background:var(--success);border-color:var(--success)}
 .milestone-tl-item.overdue::before{border-color:var(--danger)}
+.reminder-bell{position:relative;cursor:pointer;font-size:18px;padding:4px 6px;border-radius:var(--radius-xs);transition:var(--transition);color:var(--text-secondary)}
+.reminder-bell:hover{background:var(--surface-2);color:var(--text)}
+.reminder-bell .bell-count{position:absolute;top:-2px;right:-4px;background:var(--danger);color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.reminder-bell .bell-count.zero{display:none}
+@keyframes bellRing{0%,100%{transform:rotate(0)}20%{transform:rotate(12deg)}40%{transform:rotate(-12deg)}60%{transform:rotate(8deg)}80%{transform:rotate(-8deg)}}
+.reminder-bell.ringing{animation:bellRing .6s ease}
+.reminder-item{background:var(--surface);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);margin-bottom:10px;display:flex;align-items:flex-start;gap:12px;transition:var(--transition);border-left:4px solid var(--border-strong)}
+.reminder-item:hover{box-shadow:var(--shadow-md)}
+.reminder-item.priority-high{border-left-color:var(--danger)}
+.reminder-item.priority-medium{border-left-color:var(--accent)}
+.reminder-item.priority-low{border-left-color:var(--primary)}
+.reminder-icon{font-size:22px;flex-shrink:0;margin-top:1px}
+.reminder-body{flex:1;min-width:0}
+.reminder-title{font-size:14px;font-weight:600;margin-bottom:2px}
+.reminder-desc{font-size:12px;color:var(--text-secondary);line-height:1.5}
+.reminder-actions{display:flex;gap:6px;margin-top:8px}
+.reminder-dismiss{font-size:16px;color:var(--text-tertiary);cursor:pointer;padding:2px 6px;border-radius:4px;transition:var(--transition);border:none;background:transparent;flex-shrink:0;line-height:1}
+.reminder-dismiss:hover{color:var(--danger);background:var(--danger-light)}
+.reminder-type-badge{font-size:10px;padding:1px 8px;border-radius:4px;font-weight:600;flex-shrink:0;white-space:nowrap}
+.reminder-empty{text-align:center;padding:40px 20px}
+.reminder-empty .icon{font-size:48px;margin-bottom:12px;opacity:.3}
+.reminder-empty h3{font-size:16px;color:var(--text);margin-bottom:4px}
+.reminder-empty p{font-size:13px;color:var(--text-tertiary)}
+.toggle-switch{position:relative;display:inline-block;width:44px;height:24px}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--border-strong);border-radius:12px;transition:var(--transition)}
+.toggle-slider:before{content:"";position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:var(--transition)}
+input:checked+.toggle-slider{background:var(--success)}
+input:checked+.toggle-slider:before{transform:translateX(20px)}
 </style>
 </head>
 <body>
 <div class="app">
 <aside class="sidebar">
-<div class="sidebar-header"><div class="logo"><div class="logo-icon">&#x1f3ed;</div><div><h1>人生规划助手</h1></div></div><p>基于柏永辉《我的第一本人生规划手册》</p></div>
+<div class="sidebar-header"><div class="logo"><div class="logo-icon">&#x1f3ed;</div><div><h1>人生规划助手</h1></div><div class="reminder-bell" id="reminder-bell" onclick="gotoModule('reminders')">&#x1f514;<span class="bell-count zero" id="bell-count">0</span></div></div><p>基于柏永辉《我的第一本人生规划手册》</p></div>
 <nav class="nav">
 <div class="nav-section-label">总览</div>
 <div class="nav-item active" data-page="dashboard"><span class="nav-icon">&#x1f3e0;</span><span>总览仪表盘</span></div>
@@ -248,6 +277,7 @@ textarea{resize:vertical;min-height:70px}
 <div class="nav-item" data-page="simulation"><span class="nav-icon">&#x1f9ed;</span><span>战略推演</span></div>
 <div class="nav-section-label">反馈</div>
 <div class="nav-item" data-page="feedback"><span class="nav-icon">&#x1f504;</span><span>反馈闭环</span></div>
+<div class="nav-item" data-page="reminders"><span class="nav-icon">&#x1f514;</span><span>提醒中心</span><span class="nav-badge" id="nav-badge-reminders" style="display:none;">!</span></div>
 <div class="nav-section-label">AI助手</div>
 <div class="nav-item" data-page="aichat"><span class="nav-icon">&#x1f4ac;</span><span>AI对话</span></div>
 </nav>
@@ -553,7 +583,14 @@ feedback:`<div class="page-header"><h2>反馈闭环 <span class="badge badge-tea
 <div class="feedback-tab" onclick="switchFeedbackTab('calibration')">&#x1f3af; 预测校准</div>
 <div class="feedback-tab" onclick="switchFeedbackTab('milestones')">&#x1f3c1; 里程碑追踪</div>
 </div>
-<div id="feedback-content"></div>`
+<div id="feedback-content"></div>`,
+reminders:`<div class="page-header"><h2>提醒中心 <span class="badge badge-red">智能</span></h2><p>系统自动扫描全应用数据，主动推送你需要关注的事项</p></div>
+<div class="card" style="display:flex;align-items:center;justify-content:space-between">
+<div><div style="font-size:13px;color:var(--text-secondary);margin-bottom:4px">浏览器通知</div><div style="font-size:12px;color:var(--text-tertiary)" id="notif-status">未开启</div></div>
+<label class="toggle-switch"><input type="checkbox" id="notif-toggle" onchange="toggleNotifications()"><span class="toggle-slider"></span></label>
+</div>
+<div id="reminders-summary"></div>
+<div id="reminders-list"></div>`
 };
 
 // ====== 渲染页面到主内容区 ======
@@ -597,7 +634,7 @@ onPageEnter(item.dataset.page);
 })});
 
 function onPageEnter(page){switch(page){
-case'dashboard':renderDashboard();break;case'lifeclock':renderLifeClock();break;case'resource':renderResource();break;case'decade':renderDecade();break;case'fate':renderFate();break;case'time':renderTime();break;case'knowledge':renderKnowledge();break;case'path':renderPath();break;case'trial':renderTrial();break;case'intel':renderIntel();break;case'review':renderReview();break;case'growth':renderGrowth();break;case'simulation':renderSimulation();break;case'feedback':renderFeedback();break;case'aichat':renderAIChat();break}}
+case'dashboard':renderDashboard();break;case'lifeclock':renderLifeClock();break;case'resource':renderResource();break;case'decade':renderDecade();break;case'fate':renderFate();break;case'time':renderTime();break;case'knowledge':renderKnowledge();break;case'path':renderPath();break;case'trial':renderTrial();break;case'intel':renderIntel();break;case'review':renderReview();break;case'growth':renderGrowth();break;case'simulation':renderSimulation();break;case'feedback':renderFeedback();break;case'reminders':renderReminders();break;case'aichat':renderAIChat();break}}
 
 const charts={};function destroyChart(k){if(charts[k]){charts[k].destroy();delete charts[k]}}
 
@@ -852,6 +889,9 @@ if(rv.length>0){const lastRv=rv[0];const daysSinceRv=Math.floor((Date.now()-new 
 const dc2=get('decisions',[]);
 const reviewed=dc2.filter(x=>x.status==='reviewed'&&x.expected&&x.actual);
 if(reviewed.length>0){const acc=reviewed.filter(function(dd){var e=(dd.expected||'').toLowerCase(),a=(dd.actual||'').toLowerCase();return a.indexOf(e.substring(0,10))>=0||e.indexOf(a.substring(0,10))>=0}).length;d.calibration='已复盘'+reviewed.length+'条决策，校准准确率'+Math.round(acc/reviewed.length*100)+'%'}
+// 14 智能提醒
+var rms=generateReminders();
+if(rms.length>0){d.reminders=rms.length+'条提醒：'+rms.map(function(r){return r.title}).join('；')}
 return d;
 }
 function buildAIPrompt(d,style){
@@ -1139,6 +1179,7 @@ function buildChatDataContext(d){
   if(d.milestones)lines.push('里程碑：'+d.milestones);
   if(d.reviewRhythm)lines.push('复盘节奏：'+d.reviewRhythm);
   if(d.calibration)lines.push('预测校准：'+d.calibration);
+  if(d.reminders)lines.push('待办提醒：'+d.reminders);
   return lines.length?lines.join('\n'):'（用户尚未填写任何数据，请引导用户先去总览仪表盘填写基本信息）';
 }
 function clearChatHistory(){
@@ -1986,6 +2027,168 @@ function deleteMilestone(id){
   set('milestones',get('milestones',[]).filter(function(x){return x.id!==id}));renderMilestonesContent();showToast('已删除')
 }
 
+// ====== 智能提醒系统 ======
+function generateReminders(){
+  var reminders=[];var now=Date.now();var today=new Date().toISOString().split('T')[0];
+  // 1 复盘提醒
+  var rv=get('reviews',[]);
+  if(rv.length===0){
+    reminders.push({id:'review-first',type:'复盘',typeColor:'badge-teal',priority:'high',icon:'\u1f501',title:'从未复盘',desc:'没有复盘就没有反馈循环。建议从周复盘开始，每周花5分钟回顾。',action:'review',actionText:'去复盘'});
+  }else{
+    var lastRv=rv[0];var daysSinceRv=Math.floor((now-new Date(lastRv.date).getTime())/86400000);
+    if(daysSinceRv>=30){reminders.push({id:'review-monthly',type:'复盘',typeColor:'badge-teal',priority:'high',icon:'\u1f4c5',title:'该做月度复盘了',desc:'距上次复盘已'+daysSinceRv+'天，月度复盘可以看到更大的趋势和模式。',action:'review',actionText:'去复盘'})}
+    else if(daysSinceRv>=7){reminders.push({id:'review-weekly',type:'复盘',typeColor:'badge-teal',priority:'medium',icon:'\u1f4c5',title:'该做周复盘了',desc:'距上次复盘已'+daysSinceRv+'天，保持每周复盘的节奏。',action:'review',actionText:'去复盘'})}
+    else if(daysSinceRv>=2){reminders.push({id:'review-daily',type:'复盘',typeColor:'badge-teal',priority:'low',icon:'\u1f501',title:'今日复盘',desc:'每天花5分钟回顾今天，保持反馈循环。',action:'review',actionText:'去复盘'})}
+  }
+  // 2 里程碑到期提醒
+  var ms=get('milestones',[]);
+  ms.forEach(function(m){
+    if(m.status==='done'||!m.deadline)return;
+    var daysLeft=Math.floor((new Date(m.deadline).getTime()-now)/86400000);
+    if(daysLeft<0){reminders.push({id:'ms-overdue-'+m.id,type:'里程碑',typeColor:'badge-red',priority:'high',icon:'\u26a0',title:'里程碑已逾期：'+m.title,desc:'截止日期已过'+Math.abs(daysLeft)+'天，进度'+(m.progress||0)+'%。建议重新评估或调整计划。',action:'feedback',actionText:'去查看'})}
+    else if(daysLeft<=3){reminders.push({id:'ms-urgent-'+m.id,type:'里程碑',typeColor:'badge-red',priority:'high',icon:'\u1f6a8',title:'里程碑即将到期：'+m.title,desc:'仅剩'+daysLeft+'天到期，当前进度'+(m.progress||0)+'%。',action:'feedback',actionText:'去查看'})}
+    else if(daysLeft<=7){reminders.push({id:'ms-soon-'+m.id,type:'里程碑',typeColor:'badge-orange',priority:'medium',icon:'\u1f4c5',title:'里程碑临近：'+m.title,desc:'还有'+daysLeft+'天到期，当前进度'+(m.progress||0)+'%。',action:'feedback',actionText:'去查看'})}
+  });
+  // 3 自动里程碑进度提醒
+  var autoMs=generateAutoMilestones();
+  autoMs.forEach(function(m){
+    if(m.status==='done'||m.progress>=50)return;
+    reminders.push({id:'ms-prog-'+m.id,type:'里程碑',typeColor:'badge-orange',priority:'low',icon:'\u1f3af',title:'里程碑进度落后：'+m.title,desc:'当前进度'+m.progress+'%，'+m.desc+'。',action:'feedback',actionText:'去查看'});
+  });
+  // 4 决策待复盘
+  var dc=get('decisions',[]);
+  dc.forEach(function(d){
+    if(d.status==='reviewed'||!d.reviewDate)return;
+    var daysLeft=Math.floor((new Date(d.reviewDate).getTime()-now)/86400000);
+    if(daysLeft<=0){reminders.push({id:'dec-review-'+d.id,type:'决策',typeColor:'badge-purple',priority:'high',icon:'\u1f4dd',title:'决策待复盘：'+d.title,desc:'计划复盘日期已到（'+d.reviewDate+'），是时候回顾这个决策的预期vs实际了。',action:'growth',actionText:'去复盘'})}
+    else if(daysLeft<=3){reminders.push({id:'dec-soon-'+d.id,type:'决策',typeColor:'badge-purple',priority:'medium',icon:'\u1f4dd',title:'决策复盘临近：'+d.title,desc:'还有'+daysLeft+'天到复盘日期。',action:'growth',actionText:'去查看'})}
+  });
+  // 5 快照过期
+  var snaps=get('snapshots',[]);
+  if(snaps.length>0){
+    var lastSnap=snaps[snaps.length-1];var daysSinceSnap=Math.floor((now-lastSnap.timestamp)/86400000);
+    if(daysSinceSnap>=14){reminders.push({id:'snap-stale',type:'快照',typeColor:'badge-blue',priority:'medium',icon:'\u1f4f7',title:'快照已过期',desc:'距上次快照已'+daysSinceSnap+'天，成长档案的数据连续性可能受到影响。',action:'growth',actionText:'去记录'})}
+  }
+  // 6 应急金不足
+  var inc=get('monthlyIncome',0);var ef=get('efSaved',0);
+  var fc=get('fateInputs',{}).fixedCost||0;
+  if(fc>0){var efTarget=Math.round(fc*6);if(ef<efTarget*0.5){reminders.push({id:'ef-low',type:'资源',typeColor:'badge-orange',priority:'high',icon:'\u1f4b0',title:'应急储备金严重不足',desc:'当前'+ef.toLocaleString()+'元，目标'+efTarget.toLocaleString()+'元，仅完成'+Math.round(ef/efTarget*100)+'%。建议优先储备。',action:'resource',actionText:'去存钱'})}}
+  // 7 任务完成率低
+  var tk=get('tasks',{main:[],side:[],mini:[]});
+  var allT=[...(tk.main||[]),...(tk.side||[]),...(tk.mini||[])];
+  if(allT.length>=3){var tDone=allT.filter(function(t){return t.done}).length;var tRate=Math.round(tDone/allT.length*100);if(tRate<50){reminders.push({id:'task-low',type:'执行',typeColor:'badge-red',priority:'medium',icon:'\u2705',title:'任务完成率低',desc:'当前'+tDone+'/'+allT.length+'（'+tRate+'%），建议聚焦核心任务，减少琐碎任务。',action:'time',actionText:'去完成'})}}
+  // 8 收入目标差距
+  var tg=get('targetIncome',0);
+  if(inc>0&&tg>0&&inc<tg*0.7){reminders.push({id:'inc-gap',type:'收入',typeColor:'badge-blue',priority:'low',icon:'\u1f4b9',title:'收入距目标差距大',desc:'当前'+inc.toLocaleString()+'元，目标'+tg.toLocaleString()+'元，仅'+Math.round(inc/tg*100)+'%。考虑提升技能或开辟副业。',action:'knowledge',actionText:'去修炼'})}
+  // 9 修炼路径未定
+  var ps=get('pathStage');
+  if(!ps&&inc>0){reminders.push({id:'path-unset',type:'修炼',typeColor:'badge-purple',priority:'medium',icon:'\u1f6e3',title:'修炼路径未确定',desc:'确定你的修炼阶段（时间换钱/技术换钱/资源换钱），有助于明确发展方向。',action:'path',actionText:'去确定'})}
+  // 过滤已忽略
+  var dismissed=get('dismissedReminders',{});
+  var filtered=reminders.filter(function(r){
+    var d=dismissed[r.id];
+    if(!d)return true;
+    return d!==today;
+  });
+  return filtered;
+}
+function checkAllReminders(){
+  var reminders=generateReminders();
+  var high=reminders.filter(function(r){return r.priority==='high'}).length;
+  // 更新铃铛
+  var bell=document.getElementById('bell-count');
+  if(bell){bell.textContent=reminders.length;bell.className='bell-count'+(reminders.length===0?' zero':'')}
+  // 更新导航badge
+  var navBadge=document.getElementById('nav-badge-reminders');
+  if(navBadge){if(reminders.length>0){navBadge.style.display='inline-block';navBadge.textContent=reminders.length}else{navBadge.style.display='none'}}
+  // 铃铛动画
+  if(reminders.length>0){var bellEl=document.getElementById('reminder-bell');if(bellEl){bellEl.classList.add('ringing');setTimeout(function(){bellEl.classList.remove('ringing')},600)}}
+  // 浏览器通知
+  var notifSetting=get('notifEnabled',false);
+  if(notifSetting&&'Notification' in window&&Notification.permission==='granted'&&reminders.length>0){
+    var topP=reminders.filter(function(r){return r.priority==='high'});
+    var list=topP.length>0?topP:reminders.slice(0,3);
+    list.forEach(function(r,i){
+      setTimeout(function(){
+        try{new Notification(r.title,{body:r.desc,icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="80" font-size="80">'+r.icon+'</text></svg>',tag:r.id})}catch(e){}
+      },i*1500);
+    });
+  }
+  return reminders;
+}
+function renderReminders(){
+  var reminders=generateReminders();
+  // 通知状态
+  var notifStatus=document.getElementById('notif-status');
+  var notifToggle=document.getElementById('notif-toggle');
+  var notifEnabled=get('notifEnabled',false);
+  if(notifStatus&&notifToggle){
+    if(!('Notification' in window)){notifStatus.textContent='此浏览器不支持通知';notifToggle.disabled=true}
+    else if(Notification.permission==='granted'){notifStatus.textContent=notifEnabled?'已开启':'已授权但未开启';notifToggle.checked=notifEnabled}
+    else if(Notification.permission==='denied'){notifStatus.textContent='已被浏览器拒绝，请在设置中允许';notifToggle.disabled=true}
+    else{notifStatus.textContent='未授权';notifToggle.checked=false}
+  }
+  // 摘要
+  var summary=document.getElementById('reminders-summary');
+  if(summary){
+    var high=reminders.filter(function(r){return r.priority==='high'}).length;
+    var med=reminders.filter(function(r){return r.priority==='medium'}).length;
+    var low=reminders.filter(function(r){return r.priority==='low'}).length;
+    if(reminders.length===0){
+      summary.innerHTML='<div class="card"><div class="reminder-empty"><div class="icon">&#x2705;</div><h3>暂无待办提醒</h3><p>所有事项都在正常轨道上，继续保持！</p></div></div>';
+    }else{
+      summary.innerHTML='<div class="grid-4" style="margin-bottom:18px">'+
+        '<div class="stat-card s-danger"><div class="stat-value">'+high+'</div><div class="stat-label">高优先级</div></div>'+
+        '<div class="stat-card s-accent"><div class="stat-value">'+med+'</div><div class="stat-label">中优先级</div></div>'+
+        '<div class="stat-card"><div class="stat-value">'+low+'</div><div class="stat-label">低优先级</div></div>'+
+        '<div class="stat-card s-purple"><div class="stat-value">'+reminders.length+'</div><div class="stat-label">总提醒</div></div>'+
+      '</div>';
+    }
+  }
+  // 提醒列表
+  var list=document.getElementById('reminders-list');
+  if(!list)return;
+  if(reminders.length===0){list.innerHTML='';return}
+  var priorityOrder={'high':0,'medium':1,'low':2};
+  var priorityLabel={'high':'紧急','medium':'重要','low':'建议'};
+  var priorityColor={'high':'badge-red','medium':'badge-orange','low':'badge-blue'};
+  var sorted=reminders.slice().sort(function(a,b){return priorityOrder[a.priority]-priorityOrder[b.priority]});
+  list.innerHTML=sorted.map(function(r){
+    return '<div class="reminder-item priority-'+r.priority+'">'+
+      '<div class="reminder-icon">'+r.icon+'</div>'+
+      '<div class="reminder-body">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">'+
+          '<span class="reminder-title">'+r.title+'</span>'+
+          '<span class="badge '+priorityColor[r.priority]+'" style="font-size:9px">'+priorityLabel[r.priority]+'</span>'+
+          '<span class="reminder-type-badge tag-gray">'+r.type+'</span>'+
+        '</div>'+
+        '<div class="reminder-desc">'+r.desc+'</div>'+
+        '<div class="reminder-actions">'+
+          (r.action?'<button class="btn btn-sm btn-primary" onclick="gotoModule(\''+r.action+'\')">'+(r.actionText||'去处理')+'</button>':'')+
+        '</div>'+
+      '</div>'+
+      '<button class="reminder-dismiss" onclick="dismissReminder(\''+r.id+'\')" title="今日不再提醒">&#x2715;</button>'+
+    '</div>';
+  }).join('');
+}
+function dismissReminder(id){
+  var today=new Date().toISOString().split('T')[0];
+  var d=get('dismissedReminders',{});
+  d[id]=today;
+  set('dismissedReminders',d);
+  renderReminders();
+  checkAllReminders();
+  showToast('已忽略，明日再提醒');
+}
+function toggleNotifications(){
+  var toggle=document.getElementById('notif-toggle');
+  if(!toggle.checked){set('notifEnabled',false);document.getElementById('notif-status').textContent='未开启';showToast('通知已关闭');return}
+  if(!('Notification' in window)){showToast('此浏览器不支持通知','error');return}
+  if(Notification.permission==='granted'){set('notifEnabled',true);document.getElementById('notif-status').textContent='已开启';showToast('通知已开启');checkAllReminders()}
+  else if(Notification.permission==='denied'){showToast('通知权限已被拒绝，请在浏览器设置中允许','error');toggle.checked=false}
+  else{Notification.requestPermission().then(function(p){if(p==='granted'){set('notifEnabled',true);document.getElementById('notif-status').textContent='已开启';showToast('通知已开启');checkAllReminders()}else{showToast('未授权通知权限','error');toggle.checked=false;document.getElementById('notif-status').textContent='未授权'}})}
+}
+
 // ====== 初始化 ======
 loadStore();
 renderPage('dashboard');
@@ -1993,6 +2196,7 @@ renderDashboard();
 autoSnapshot();
 checkAutoBackup();
 updateBackupInfo();
+checkAllReminders();
 document.getElementById('bk-interval').addEventListener('change',saveBackupSettings);
 </script>
 </body>
