@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>人生规划生活助手 — 基于柏永辉《我的第一本人生规划手册》</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="人生规划">
+<meta name="mobile-web-app-capable" content="yes">
+<script src="chart.umd.min.js"></script>
+<style>
+:root{--bg:#f0f2f5;--surface:#fff;--surface-2:#f8f9fb;--surface-3:#f1f5f9;--primary:#2563eb;--primary-light:#dbeafe;--primary-dark:#1e40af;--accent:#f59e0b;--accent-light:#fef3c7;--accent-dark:#d97706;--success:#10b981;--success-light:#d1fae5;--success-dark:#059669;--danger:#ef4444;--danger-light:#fee2e2;--danger-dark:#dc2626;--purple:#8b5cf6;--purple-light:#ede9fe;--purple-dark:#6d28d9;--teal:#14b8a6;--text:#1e293b;--text-secondary:#64748b;--text-tertiary:#94a3b8;--border:#e2e8f0;--border-strong:#cbd5e1;--shadow:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);--shadow-md:0 4px 12px rgba(0,0,0,0.06);--shadow-lg:0 10px 40px rgba(0,0,0,0.10);--radius:14px;--radius-sm:8px;--radius-xs:6px;--transition:all 0.2s cubic-bezier(0.4,0,0.2,1)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--text-tertiary)}
+.app{display:flex;min-height:100vh}
+.sidebar{width:250px;background:var(--surface);border-right:1px solid var(--border);flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:100;display:flex;flex-direction:column}
+.sidebar-header{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
+.sidebar-header .logo{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.sidebar-header .logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--primary),var(--purple));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;flex-shrink:0}
+.sidebar-header h1{font-size:16px;font-weight:700;color:var(--text)}
+.sidebar-header p{font-size:11px;color:var(--text-tertiary);line-height:1.4}
+.nav{padding:10px 0;flex:1}
+.nav-section-label{font-size:10px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px;padding:12px 20px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;color:var(--text-secondary);font-size:13px;transition:var(--transition);border-left:3px solid transparent;user-select:none}
+.nav-item:hover{background:var(--surface-2);color:var(--text)}
+.nav-item.active{background:linear-gradient(90deg,var(--primary-light),transparent);color:var(--primary-dark);border-left-color:var(--primary);font-weight:600}
+.nav-icon{font-size:16px;width:22px;text-align:center}
+.nav-item .nav-badge{margin-left:auto;font-size:10px;background:var(--danger);color:#fff;padding:1px 6px;border-radius:10px;font-weight:700}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:6px}
+.sidebar-footer .btn-mini{flex:1;padding:6px;font-size:11px;border-radius:var(--radius-xs);border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);cursor:pointer;transition:var(--transition);text-align:center}
+.sidebar-footer .btn-mini:hover{background:var(--surface-2);border-color:var(--primary);color:var(--primary)}
+.main{flex:1;padding:28px 32px;max-width:calc(100% - 250px);overflow-x:hidden}
+.page{display:none;animation:fadeIn 0.3s ease}.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes pendulum{0%,100%{transform:rotate(-15deg)}50%{transform:rotate(15deg)}}
+.page-header{margin-bottom:24px}.page-header h2{font-size:22px;font-weight:700;margin-bottom:4px}.page-header p{color:var(--text-secondary);font-size:13px}
+.card{background:var(--surface);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);margin-bottom:18px;transition:var(--transition)}.card:hover{box-shadow:var(--shadow-md)}
+.card-title{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title .badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
+.badge-blue{background:var(--primary-light);color:var(--primary-dark)}.badge-green{background:var(--success-light);color:var(--success-dark)}.badge-orange{background:var(--accent-light);color:var(--accent-dark)}.badge-red{background:var(--danger-light);color:var(--danger-dark)}.badge-purple{background:var(--purple-light);color:var(--purple-dark)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:900px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}.sidebar{width:56px}.sidebar-header h1,.sidebar-header p,.sidebar-header .logo span,.nav-item span:not(.nav-icon),.nav-section-label,.sidebar-footer,.backup-info{display:none}.nav-item{justify-content:center;padding:12px}.sidebar-header .logo{justify-content:center}.main{max-width:calc(100% - 56px);padding:16px}}
+label{display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.3px}
+input[type=text],input[type=number],input[type=date],textarea,select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);transition:var(--transition)}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light)}
+textarea{resize:vertical;min-height:70px}
+.btn{padding:9px 18px;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;transition:var(--transition);font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,0.3)}
+.btn-outline{background:transparent;border:1px solid var(--border-strong);color:var(--text-secondary)}.btn-outline:hover{background:var(--surface-2);color:var(--text);border-color:var(--primary)}
+.btn-danger{background:transparent;border:1px solid var(--danger);color:var(--danger);padding:4px 10px;font-size:12px;border-radius:var(--radius-xs)}.btn-danger:hover{background:var(--danger-light)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.stat-card{background:var(--surface);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);text-align:center;transition:var(--transition);position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--primary)}
+.stat-card.s-accent::before{background:var(--accent)}.stat-card.s-success::before{background:var(--success)}.stat-card.s-purple::before{background:var(--purple)}.stat-card.s-danger::before{background:var(--danger)}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.stat-value{font-size:28px;font-weight:800;color:var(--text);line-height:1.2}
+.stat-card.s-accent .stat-value{color:var(--accent-dark)}.stat-card.s-success .stat-value{color:var(--success-dark)}.stat-card.s-purple .stat-value{color:var(--purple-dark)}
+.stat-label{font-size:12px;color:var(--text-secondary);margin-top:4px}.stat-sub{font-size:10px;color:var(--text-tertiary);margin-top:2px}
+.progress-bar{height:8px;background:var(--surface-3);border-radius:4px;overflow:hidden;margin:8px 0}.progress-fill{height:100%;border-radius:4px;transition:width 0.4s ease}
+.progress-ring{position:relative;width:120px;height:120px;margin:0 auto}.progress-ring svg{transform:rotate(-90deg)}.progress-ring-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.life-clock-wrap{display:flex;justify-content:center;padding:16px 0}.life-clock{position:relative;width:340px;height:340px}.life-clock svg{width:100%;height:100%;transform:rotate(-90deg)}
+.life-clock-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.life-clock-center .age{font-size:40px;font-weight:800;color:var(--primary)}.life-clock-center .label{font-size:13px;color:var(--text-secondary);font-weight:600}.life-clock-center .remaining{font-size:11px;color:var(--text-tertiary);margin-top:4px}
+.pendulum-wrap{display:flex;justify-content:center;margin:20px 0}
+.pendulum{width:4px;height:80px;background:var(--border-strong);margin:0 auto;position:relative;transform-origin:top center;animation:pendulum 3s ease-in-out infinite}
+.pendulum::after{content:'';position:absolute;bottom:-12px;left:50%;transform:translateX(-50%);width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--purple));box-shadow:0 2px 8px rgba(37,99,235,0.3)}
+.pendulum-anchor{width:20px;height:20px;background:var(--text-secondary);border-radius:50%;margin:0 auto -8px;position:relative;z-index:1}
+.resource-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:18px 0}
+.resource-box{border-radius:var(--radius);padding:18px;text-align:center;border:2px solid;transition:var(--transition)}.resource-box:hover{transform:translateY(-3px)}
+.resource-box .pct{font-size:26px;font-weight:800;line-height:1.1}.resource-box .name{font-size:12px;font-weight:600;margin-top:4px}.resource-box .amount{font-size:15px;font-weight:700;margin-top:8px}.resource-box .desc{font-size:10px;margin-top:4px;opacity:0.7}
+.r1{background:linear-gradient(135deg,#fef3c7,#fef9e7);border-color:#f59e0b;color:#92400e}.r2{background:linear-gradient(135deg,#dbeafe,#eff6ff);border-color:#3b82f6;color:#1e40af}.r3{background:linear-gradient(135deg,#d1fae5,#ecfdf5);border-color:#10b981;color:#065f46}.r4{background:linear-gradient(135deg,#ede9fe,#f5f3ff);border-color:#8b5cf6;color:#5b21b6}
+.chart-container{position:relative;height:250px;margin:16px 0}.chart-container-sm{position:relative;height:180px;margin:12px 0}
+.timeline{position:relative;padding-left:28px}.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--border)}
+.timeline-item{position:relative;margin-bottom:18px}.timeline-item::before{content:'';position:absolute;left:-28px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:3px solid var(--primary);transition:var(--transition)}
+.timeline-item.done::before{background:var(--success);border-color:var(--success)}.timeline-item.current::before{border-color:var(--accent);animation:pulse 2s infinite}
+.timeline-item .time{font-size:11px;color:var(--text-tertiary);margin-bottom:3px;font-weight:600}.timeline-item .content{font-size:13px}
+.task-list{list-style:none}.task-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);transition:var(--transition)}.task-item:last-child{border-bottom:none}.task-item:hover{background:var(--surface-2);margin:0 -8px;padding:10px 8px;border-radius:var(--radius-xs)}
+.task-check{width:20px;height:20px;border:2px solid var(--border-strong);border-radius:5px;cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:var(--transition)}.task-check:hover{border-color:var(--primary)}.task-check.done{background:var(--success);border-color:var(--success);color:#fff}.task-check.done::after{content:'\2713';font-size:14px;font-weight:700}
+.task-text{flex:1;font-size:13px}.task-item.completed .task-text{text-decoration:line-through;color:var(--text-tertiary)}
+.task-type{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600;flex-shrink:0}.type-main{background:var(--danger-light);color:var(--danger-dark)}.type-side{background:var(--accent-light);color:var(--accent-dark)}.type-mini{background:var(--surface-3);color:var(--text-tertiary)}
+.tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.tag-blue{background:var(--primary-light);color:var(--primary-dark)}.tag-green{background:var(--success-light);color:var(--success-dark)}.tag-orange{background:var(--accent-light);color:var(--accent-dark)}.tag-red{background:var(--danger-light);color:var(--danger-dark)}.tag-purple{background:var(--purple-light);color:var(--purple-dark)}.tag-gray{background:var(--surface-3);color:var(--text-secondary)}
+.path-steps{display:flex;gap:0;margin:20px 0;align-items:stretch}.path-step{flex:1;padding:20px;border-radius:var(--radius) 0 0 var(--radius);border:2px solid;border-right:none;position:relative;cursor:pointer;transition:var(--transition)}.path-step:last-child{border-right:2px solid;border-radius:0 var(--radius) var(--radius) 0}.path-step.active{transform:translateY(-4px);box-shadow:var(--shadow-lg);z-index:1}
+.path-step .step-num{font-size:11px;font-weight:700;opacity:0.6;text-transform:uppercase;letter-spacing:0.5px}.path-step .step-title{font-size:16px;font-weight:700;margin:6px 0}.path-step .step-desc{font-size:12px;opacity:0.8;line-height:1.5}
+.path-step .step-arrow{position:absolute;right:-12px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:50%;z-index:2;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff}.path-step:last-child .step-arrow{display:none}
+.path-step.s1{background:linear-gradient(135deg,#fef3c7,#fef9e7);border-color:#f59e0b;color:#92400e}.path-step.s1 .step-arrow{background:#f59e0b}.path-step.s2{background:linear-gradient(135deg,#dbeafe,#eff6ff);border-color:#3b82f6;color:#1e40af}.path-step.s2 .step-arrow{background:#3b82f6}.path-step.s3{background:linear-gradient(135deg,#d1fae5,#ecfdf5);border-color:#10b981;color:#065f46}
+.intel-question{background:var(--surface-2);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;border-left:3px solid var(--primary);transition:var(--transition)}.intel-question:hover{border-left-color:var(--accent);background:var(--surface-3)}.intel-question .q{font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px;font-size:13px}.intel-question .q-num{background:var(--primary);color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.principle-card{background:linear-gradient(135deg,#eff6ff 0%,#f0fdf4 100%);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:10px;transition:var(--transition)}.principle-card:hover{border-color:var(--primary);transform:translateY(-1px)}.principle-card .ptitle{font-weight:700;font-size:14px;color:var(--primary-dark);margin-bottom:4px}.principle-card .pdesc{font-size:12px;color:var(--text-secondary)}.principle-card .pval{font-size:22px;font-weight:800;color:var(--accent-dark);margin-top:6px}
+.tip-box{background:var(--accent-light);border-left:3px solid var(--accent);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:11px 14px;font-size:12px;color:#92400e;margin:12px 0;line-height:1.6}.tip-box strong{color:#78350f}.tip-box.tip-success{background:var(--success-light);border-color:var(--success);color:#065f46}.tip-box.tip-success strong{color:#064e3b}.tip-box.tip-danger{background:var(--danger-light);border-color:var(--danger);color:#991b1b}.tip-box.tip-danger strong{color:#7f1d1d}
+.quote{font-style:italic;color:var(--text-secondary);border-left:3px solid var(--accent);padding-left:12px;margin:10px 0;font-size:13px;line-height:1.7}
+.work-135{display:grid;grid-template-columns:2fr 1.5fr 1fr;gap:14px}.work-col{border-radius:var(--radius);padding:14px;min-height:180px;transition:var(--transition)}.work-col-1{background:linear-gradient(135deg,#fee2e2,#fef2f2)}.work-col-3{background:linear-gradient(135deg,#fef3c7,#fefce8)}.work-col-5{background:linear-gradient(135deg,#e0e7ff,#eef2ff)}.work-col h4{font-size:12px;margin-bottom:10px;display:flex;justify-content:space-between;font-weight:700}.work-col h4 .count{background:rgba(0,0,0,0.08);padding:1px 8px;border-radius:10px;font-size:10px}
+.mini-task-input{background:rgba(255,255,255,0.5);border:1px dashed var(--border-strong);border-radius:6px;padding:7px 10px;margin-bottom:6px;font-size:13px;cursor:pointer;transition:var(--transition);width:100%;font-family:inherit}.mini-task-input::placeholder{color:var(--text-tertiary)}.mini-task-input:hover,.mini-task-input:focus{background:rgba(255,255,255,0.9);border-style:solid;outline:none}
+.knowledge-card{background:var(--surface);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:10px;border-left:4px solid var(--primary);transition:var(--transition)}.knowledge-card:hover{box-shadow:var(--shadow-md)}.knowledge-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}.knowledge-header h4{font-size:14px;font-weight:600}
+.ratio-bar{display:flex;height:22px;border-radius:5px;overflow:hidden;margin:6px 0}.ratio-learn{background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600;transition:width 0.4s}.ratio-practice{background:var(--success);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600;transition:width 0.4s}
+.decade-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0}.decade-cell{aspect-ratio:1;border-radius:10px;border:2px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:var(--transition);position:relative;font-size:10px}.decade-cell:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--shadow-md)}.decade-cell.has-data{background:linear-gradient(135deg,var(--primary-light),#eff6ff);border-color:var(--primary)}.decade-cell.current{border-color:var(--accent);border-width:3px;box-shadow:0 0 0 3px var(--accent-light)}.decade-cell .year-label{font-weight:700;color:var(--text);font-size:13px}.decade-cell .year-mark{font-size:16px;margin-top:2px}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(2px)}.modal-overlay.show{display:flex;animation:fadeIn 0.2s ease}.modal{background:var(--surface);border-radius:var(--radius);padding:26px;max-width:520px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:var(--shadow-lg)}.modal h3{margin-bottom:16px;font-size:17px}.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+.empty-state{text-align:center;padding:32px 20px;color:var(--text-tertiary)}.empty-state .icon{font-size:36px;margin-bottom:8px;opacity:0.5}
+.toast-container{position:fixed;top:20px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:8px}.toast{background:var(--surface);border-radius:var(--radius-sm);padding:12px 18px;box-shadow:var(--shadow-lg);font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;animation:slideIn 0.3s ease;border-left:3px solid var(--success);max-width:360px}.toast.toast-error{border-left-color:var(--danger)}.toast.toast-warning{border-left-color:var(--accent)}
+.trial-card{background:var(--surface);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:10px;border-left:4px solid var(--purple);transition:var(--transition)}.trial-card:hover{box-shadow:var(--shadow-md)}.trial-status{display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600}.trial-fail{background:var(--danger-light);color:var(--danger-dark)}.trial-learn{background:var(--accent-light);color:var(--accent-dark)}.trial-success{background:var(--success-light);color:var(--success-dark)}
+.reading-tracker{display:flex;gap:4px;margin:8px 0;flex-wrap:wrap}.reading-dot{width:24px;height:24px;border-radius:50%;border:2px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;cursor:pointer;transition:var(--transition);color:var(--text-tertiary)}.reading-dot:hover{border-color:var(--primary)}.reading-dot.done{background:var(--success);border-color:var(--success);color:#fff}
+.fate-card{background:var(--surface);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:14px;border-top:4px solid var(--purple);transition:var(--transition)}.fate-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}.fate-card .fate-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--purple);color:#fff;font-size:13px;font-weight:700;margin-bottom:8px}.fate-card h4{font-size:15px;font-weight:700;margin-bottom:6px}.fate-card .fate-desc{font-size:12px;color:var(--text-secondary);margin-bottom:10px}
+.text-center{text-align:center}.text-right{text-align:right}.text-sm{font-size:12px}.text-xs{font-size:10px}.text-muted{color:var(--text-tertiary)}.text-secondary{color:var(--text-secondary)}.font-bold{font-weight:700}.flex{display:flex}.flex-between{display:flex;justify-content:space-between;align-items:center}.flex-center{display:flex;align-items:center}.gap-4{gap:4px}.gap-8{gap:8px}.gap-12{gap:12px}.flex-wrap{flex-wrap:wrap}.hidden{display:none!important}.mt-4{margin-top:4px}.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mb-8{margin-bottom:8px}.mb-16{margin-bottom:16px}
+@media(max-width:600px){.work-135{grid-template-columns:1fr}.resource-grid{grid-template-columns:1fr 1fr}.path-steps{flex-direction:column}.path-step{border-radius:var(--radius)!important;border-right:2px solid!important;margin-bottom:-2px}.path-step .step-arrow{display:none}}
+.backup-info{font-size:10px;color:var(--text-tertiary);text-align:center;padding:6px 16px 0;line-height:1.4;cursor:pointer;transition:var(--transition)}.backup-info:hover{color:var(--primary)}.backup-info .dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;vertical-align:middle}.backup-info .dot.ok{background:var(--success)}.backup-info .dot.warn{background:var(--accent)}.backup-info .dot.danger{background:var(--danger)}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+<div class="sidebar-header"><div class="logo"><div class="logo-icon">&#x1f3ed;</div><div><h1>人生规划助手</h1></div></div><p>基于柏永辉《我的第一本人生规划手册》</p></div>
+<nav class="nav">
+<div class="nav-section-label">总览</div>
+<div class="nav-item active" data-page="dashboard"><span class="nav-icon">&#x1f3e0;</span><span>总览仪表盘</span></div>
+<div class="nav-section-label">规划</div>
+<div class="nav-item" data-page="lifeclock"><span class="nav-icon">&#x23f1;</span><span>人生时钟</span></div>
+<div class="nav-item" data-page="decade"><span class="nav-icon">&#x1f4c5;</span><span>十年蓝图</span></div>
+<div class="nav-item" data-page="fate"><span class="nav-icon">&#x1f500;</span><span>命运改变法则</span></div>
+<div class="nav-section-label">执行</div>
+<div class="nav-item" data-page="resource"><span class="nav-icon">&#x1f4b0;</span><span>资源配置</span></div>
+<div class="nav-item" data-page="time"><span class="nav-icon">&#x23f3;</span><span>时间管理</span></div>
+<div class="nav-item" data-page="knowledge"><span class="nav-icon">&#x1f4da;</span><span>知识修炼</span><span class="nav-badge" id="nav-badge-knowledge" style="display:none;">!</span></div>
+<div class="nav-section-label">修炼</div>
+<div class="nav-item" data-page="path"><span class="nav-icon">&#x1f6e3;</span><span>修炼路径</span></div>
+<div class="nav-item" data-page="trial"><span class="nav-icon">&#x1f9ea;</span><span>试错资本</span></div>
+<div class="nav-item" data-page="intel"><span class="nav-icon">&#x1f50d;</span><span>情报系统</span></div>
+<div class="nav-section-label">复盘</div>
+<div class="nav-item" data-page="review"><span class="nav-icon">&#x1f501;</span><span>复盘中心</span></div>
+<div class="nav-item" data-page="principles"><span class="nav-icon">&#x1f4a1;</span><span>核心原则</span></div>
+</nav>
+<div class="sidebar-footer"><button class="btn-mini" onclick="exportData()">&#x2b07; 导出</button><button class="btn-mini" onclick="document.getElementById('import-file').click()">&#x2b06; 导入</button><button class="btn-mini" onclick="openBackupSettings()">&#x1f4be; 备份</button><input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)"></div>
+<div class="backup-info" id="backup-info" onclick="openBackupSettings()"></div>
+</aside>
+<main class="main" id="main-content"></main>
+</div>
+<div class="modal-overlay" id="review-modal"><div class="modal"><h3 id="review-modal-title">复盘</h3><div id="review-modal-content"></div><div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveReviewRecord()">保存复盘</button></div></div></div>
+<div class="modal-overlay" id="decade-diary-modal"><div class="modal"><h3>十年日记</h3><div><label>今天的日期</label><input type="date" id="dd-date"><label class="mt-12">今天做了什么重要决策？</label><textarea id="dd-decision" rows="2" placeholder="记录当下重要的决定..."></textarea><label class="mt-12">现在的心情和感受</label><textarea id="dd-feeling" rows="2" placeholder="此时此刻的感受..."></textarea><label class="mt-12">给10年后的自己留句话</label><textarea id="dd-message" rows="2" placeholder="站在未来回看今天..."></textarea></div><div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveDecadeDiary()">保存</button></div></div></div>
+<div class="modal-overlay" id="trial-modal"><div class="modal"><h3>记录一次试错</h3><div><label>试错的领域/方向</label><input type="text" id="tr-field" placeholder="如：副业尝试、新技能学习、社交方式..."><label class="mt-12">你的假设是什么？</label><textarea id="tr-hypothesis" rows="2" placeholder="你预期会发生什么？"></textarea><label class="mt-12">实际结果</label><textarea id="tr-result" rows="2" placeholder="实际发生了什么？"></textarea><label class="mt-12">学到了什么？</label><textarea id="tr-lesson" rows="2" placeholder="这次试错教会了你什么？"></textarea><label class="mt-12">状态</label><select id="tr-status"><option value="fail">失败 - 没有达到预期</option><option value="learn">学习中 - 已复盘，待验证</option><option value="success">已转化 - 成为经验</option></select></div><div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveTrial()">保存</button></div></div></div>
+<div class="modal-overlay" id="backup-modal"><div class="modal"><h3>&#x1f4be; 数据备份设置</h3><div><div class="card" style="box-shadow:none;border:1px solid var(--border);margin-bottom:14px"><label>自动备份提醒频率</label><select id="bk-interval" class="mt-8"><option value="0">关闭提醒</option><option value="1">每天提醒</option><option value="7">每周提醒</option><option value="30">每月提醒</option></select><p class="text-xs text-muted mt-8">超过设定时间未导出备份时，打开应用会弹出提醒。</p></div><div class="card" style="box-shadow:none;border:1px solid var(--border);margin-bottom:14px"><div class="flex-between"><span class="text-sm text-secondary">上次备份时间</span><span id="bk-last" class="text-sm font-bold">从未备份</span></div><div class="flex-between mt-8"><span class="text-sm text-secondary">IndexedDB 双重存储</span><span id="bk-idb" class="tag tag-green">检测中...</span></div><div class="flex-between mt-8"><span class="text-sm text-secondary">数据条目数</span><span id="bk-count" class="text-sm font-bold">0</span></div></div><div class="tip-box"><strong>三层保护说明：</strong><br>1. localStorage — 日常存储，关闭浏览器不丢<br>2. IndexedDB — 双重备份，清缓存时自动恢复<br>3. 文件导出 — 换浏览器/换电脑时用，建议定期执行</div></div><div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">关闭</button><button class="btn btn-primary" onclick="doBackupNow()">&#x2b07; 立即备份</button></div></div></div>
+<div class="toast-container" id="toast-container"></div>
+<script>
+// ====== 页面模板生成 ======
+const PAGES = {
+dashboard:`<div class="page-header"><h2>总览仪表盘</h2><p>基于「数学思维」而非「语文思维」来看清自己的当前位置</p></div>
+<div class="grid-4 mb-16">
+<div class="stat-card"><div class="stat-value" id="stat-age">--</div><div class="stat-label">当前年龄</div><div class="stat-sub" id="stat-stage">--</div></div>
+<div class="stat-card s-accent"><div class="stat-value" id="stat-hourly">--</div><div class="stat-label">时间成本（元/小时）</div><div class="stat-sub" id="stat-hourly-sub">基于月收入计算</div></div>
+<div class="stat-card s-success"><div class="stat-value" id="stat-learning">--</div><div class="stat-label">年度学习预算</div><div class="stat-sub">目标收入的 10%~15%</div></div>
+<div class="stat-card s-purple"><div class="stat-value" id="stat-path">--</div><div class="stat-label">修炼阶段</div><div class="stat-sub" id="stat-path-sub">--</div></div>
+</div>
+<div class="card"><div class="card-title">&#x26a0; 初始设置 <span class="badge badge-blue">必填</span></div><div class="grid-3">
+<div><label>你的出生年份</label><input type="number" id="setup-birth-year" placeholder="如 1995" min="1940" max="2020"></div>
+<div><label>当前月收入（元）</label><input type="number" id="setup-monthly-income" placeholder="如 12000" min="0"></div>
+<div><label>目标月收入（元）</label><input type="number" id="setup-target-income" placeholder="如 20000" min="0"></div>
+</div><div class="mt-12"><button class="btn btn-primary" onclick="saveSetup()">保存设置</button><span class="text-sm text-muted" style="margin-left:10px">设置后将自动计算各项指标</span></div></div>
+<div class="grid-2"><div class="card"><div class="card-title">&#x1f4ca; 快速指标</div><div style="display:flex;flex-direction:column;gap:10px;">
+<div class="flex-between"><span class="text-secondary text-sm">每日时间成本</span><span class="font-bold" id="qs-daily">--</span></div>
+<div class="flex-between"><span class="text-secondary text-sm">每月生活成本上限（15%）</span><span class="font-bold" id="qs-living">--</span></div>
+<div class="flex-between"><span class="text-secondary text-sm">应急储备金目标（6个月）</span><span class="font-bold" id="qs-emergency">--</span></div>
+<div class="flex-between"><span class="text-secondary text-sm">学习与实践比（建议 1:6~1:10）</span><span class="font-bold" id="qs-ratio">--</span></div>
+<div class="flex-between"><span class="text-secondary text-sm">10年总收入（买房参考）</span><span class="font-bold" id="qs-10yr">--</span></div>
+</div></div>
+<div class="card"><div class="card-title">&#x1f4cc; 今日要事（1-3-5工作法）</div><div id="dashboard-tasks"></div></div></div>
+<div class="card"><div class="card-title">&#x1f4c8; 收入构成分析</div><div class="grid-2"><div class="chart-container-sm"><canvas id="chart-income-split"></canvas></div>
+<div><p class="text-sm text-secondary mb-8">你的收入分配应遵循「保险防御十字架」原则：</p>
+<div style="display:flex;flex-direction:column;gap:6px;">
+<div class="flex gap-8 flex-center"><span class="tag tag-orange" style="min-width:36px;text-align:center">10%</span><span class="text-sm">种子钱 - 投资学习</span></div>
+<div class="flex gap-8 flex-center"><span class="tag tag-blue" style="min-width:36px;text-align:center">20%</span><span class="text-sm">保险钱 - 保障后防</span></div>
+<div class="flex gap-8 flex-center"><span class="tag tag-green" style="min-width:36px;text-align:center">30%</span><span class="text-sm">投资钱 - 创造被动收入</span></div>
+<div class="flex gap-8 flex-center"><span class="tag tag-purple" style="min-width:36px;text-align:center">40%</span><span class="text-sm">生活钱 - 日常开支</span></div>
+</div></div></div></div>`,
+lifeclock:`<div class="page-header"><h2>人生时钟</h2><p>用「生命时钟模型」认清自己当前的人生规划位置 - 时光钟摆永不停歇</p></div>
+<div class="card"><div class="card-title">&#x23f1; 你的生命时钟</div><div class="life-clock-wrap"><div class="life-clock">
+<svg viewBox="0 0 340 340"><defs><linearGradient id="cg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs>
+<circle cx="170" cy="170" r="150" fill="none" stroke="#e2e8f0" stroke-width="36"/>
+<circle id="lc-progress" cx="170" cy="170" r="150" fill="none" stroke="url(#cg)" stroke-width="36" stroke-linecap="round" stroke-dasharray="0 942"/>
+<g id="lc-marks"></g></svg>
+<div class="life-clock-center"><div class="age" id="lc-age">--</div><div class="label" id="lc-label">请先设置出生年份</div><div class="remaining" id="lc-remaining"></div></div>
+</div></div>
+<div class="pendulum-wrap"><div style="text-align:center;"><div class="pendulum-anchor"></div><div class="pendulum"></div><div class="text-xs text-muted mt-8">时光钟摆 - 永不停歇</div></div></div>
+<div class="grid-4 mt-12">
+<div class="principle-card"><div class="ptitle">成长期 (0~22)</div><div class="pdesc">学习为主，建立认知框架</div></div>
+<div class="principle-card"><div class="ptitle">奋斗期 (22~35)</div><div class="pdesc">时间换钱 -> 技术换钱</div></div>
+<div class="principle-card"><div class="ptitle">黄金期 (35~50)</div><div class="pdesc">资源换钱，建立被动收入</div></div>
+<div class="principle-card"><div class="ptitle">收获期 (50~80)</div><div class="pdesc">被动收入 + 经验变现</div></div>
+</div></div>
+<div class="card"><div class="card-title">&#x1f30e; 生命周期里程碑</div><div class="timeline" id="milestone-timeline"></div>
+<div class="tip-box tip-danger"><strong>核心提醒：</strong>假设你 80 岁去世，工作 35 年，你得用 35 年的收入养活自己 80 年。平均每年赚的钱，得能养活自己两年以上。请问你的养老金准备好了吗？</div></div>
+<div class="card"><div class="card-title">&#x1f9ed; 你陷入了「迷魂阵」吗？</div>
+<div class="quote">"是否感觉迷茫？恭喜你，你陷入了迷魂阵。但迷茫恰恰说明你在思考自己的人生方向。"</div>
+<p class="text-sm text-secondary">以下自测帮你判断自己是否处于迷茫状态：</p>
+<div class="grid-2 mt-12">
+<div class="principle-card"><div class="ptitle">&#x2705; 不迷茫的标志</div><div class="pdesc">&#x2714; 知道自己的时间成本是多少<br>&#x2714; 有明确的 3~5 年发展方向<br>&#x2714; 知道下一步该修炼什么技能<br>&#x2714; 有可量化的衡量指标<br>&#x2714; 有对标参考人/岗位</div></div>
+<div class="principle-card" style="background:linear-gradient(135deg,#fee2e2 0%,#fef2f2 100%);"><div class="ptitle" style="color:var(--danger-dark);">&#x2716; 迷茫的标志</div><div class="pdesc">&#x2716; 说不清自己每小时值多少钱<br>&#x2716; 年计划年年做年年改<br>&#x2714; 学了很多但无法变现<br>&#x2714; 没有「指路明灯」对标体系<br>&#x2714; 不知道行业的下一个台阶在哪</div></div>
+</div></div>`,
+resource:`<div class="page-header"><h2>资源配置</h2><p>一个人活成一支队伍 - 收入的科学分配体系</p></div>
+<div class="card"><div class="card-title">&#x1f4b0; 收入四分法 <span class="badge badge-blue">保险防御十字架</span></div>
+<div class="grid-2 mb-16"><div><label>当前月收入（元）</label><input type="number" id="res-income" placeholder="如 12000" oninput="calcResource()"></div>
+<div><label>当前月固定支出（元）</label><input type="number" id="res-expense" placeholder="如 5000" oninput="calcResource()"></div></div>
+<div class="resource-grid">
+<div class="resource-box r1"><div class="pct">10%</div><div class="name">种子钱</div><div class="amount" id="r1-amount">--</div><div class="desc">用来学习和投资自己</div></div>
+<div class="resource-box r2"><div class="pct">20%</div><div class="name">保险钱</div><div class="amount" id="r2-amount">--</div><div class="desc">保障后防线安全</div></div>
+<div class="resource-box r3"><div class="pct">30%</div><div class="name">投资钱</div><div class="amount" id="r3-amount">--</div><div class="desc">创造被动收入</div></div>
+<div class="resource-box r4"><div class="pct">40%</div><div class="name">生活钱</div><div class="amount" id="r4-amount">--</div><div class="desc">日常开支用</div></div>
+</div><div class="tip-box tip-danger" id="res-warning" style="display:none;"><strong>&#x26a0; 警告：</strong>你的月固定支出超过了收入的 40%，生活防线不稳定！建议先降低开支或提升收入，否则无法进入安心修炼状态。</div></div>
+<div class="grid-2"><div class="card"><div class="card-title">&#x1f4ca; 收入分配可视化</div><div class="chart-container"><canvas id="chart-resource-pie"></canvas></div></div>
+<div class="card"><div class="card-title">&#x1f3db; 储备金进度</div>
+<div class="progress-ring"><svg width="120" height="120"><circle cx="60" cy="60" r="50" fill="none" stroke="#e2e8f0" stroke-width="10"/><circle id="ef-ring" cx="60" cy="60" r="50" fill="none" stroke="#10b981" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 314" transform="rotate(-90 60 60)" style="transition:stroke-dasharray 0.5s ease;"/></svg>
+<div class="progress-ring-text"><div class="stat-value" id="ef-pct-ring" style="font-size:22px;">0%</div><div class="text-xs text-muted">已储备</div></div></div>
+<div class="mt-12"><div class="flex-between mb-8"><span class="text-sm text-secondary">目标（6个月生活费）</span><span class="font-bold text-sm" id="ef-target">--</span></div>
+<div class="flex-between"><span class="text-sm text-secondary">已存金额</span><input type="number" id="ef-saved" placeholder="0" style="width:140px;" oninput="calcEmergency()"></div></div>
+<div class="tip-box mt-12"><strong>原则：</strong>必须用收入的 10% 用于日常开销，并搭建至少 3~6 个月生活费储备。心无挂碍，才能进入深度思考的「心流」状态。</div></div></div>`,
+decade:`<div class="page-header"><h2>十年蓝图</h2><p>用「三年思维」思考自己，用「十年维度」思考发展 - 设计自己的人生蓝图</p></div>
+<div class="card"><div class="card-title">&#x1f4c5; 十年规划矩阵</div><p class="text-sm text-secondary mb-16">每个格子代表一年（从22岁开始），点击添加/编辑该年的核心目标</p>
+<div class="decade-grid" id="decade-grid"></div><div id="decade-detail"><div class="empty-state"><div class="icon">&#x1f4c5;</div><p>点击上方任意年份，开始规划你的十年蓝图</p></div></div></div>
+<div class="card"><div class="card-title">&#x1f9ed; 三年聚焦：北极星目标</div><p class="text-sm text-secondary mb-16">找到你人生奋斗方向的「北极星」，此生不再迷路</p>
+<div class="grid-2"><div><label>未来3年的核心目标</label><textarea id="decade-north-star" placeholder="如：从月薪1万提升到2万，掌握XX专业技能，建立XX被动收入管道" rows="3"></textarea></div>
+<div><label>10年总收入目标（买房参考）</label><textarea id="decade-10yr-goal" placeholder="如：10年总收入达到XX万，在工作城市买一套房" rows="3"></textarea></div></div>
+<div class="mt-12"><button class="btn btn-primary" onclick="saveDecadePlan()">保存十年规划</button></div>
+<div class="tip-box mt-12"><strong>对标方法：</strong>用 10 年的总工资，买工作城市当地的一套房子。分解目标：每年平均得赚多少钱？每月得赚多少钱？这就是基于现实对标问题、思考问题、解决问题的逻辑。</div></div>
+<div class="card"><div class="card-title">&#x1f4dd; 十年日记</div><p class="text-sm text-secondary mb-16">站在未来思考当下 - 与不同时空的自己对话</p>
+<div class="tip-box"><strong>用法：</strong>记录现在的决策和感受。等 10 天、100 天、10 年后的你来回看，判断当时的选择是否正确。你可以同时和五个不同时空版本的自己对话。</div>
+<div id="decade-diary-list"></div><button class="btn btn-outline mt-12" onclick="addDecadeDiary()">+ 添加一篇十年日记</button></div>`,
+fate:`<div class="page-header"><h2>命运改变法则</h2><p>想要改变自己的命运，你需要掌握以下原则</p></div>
+<div class="card"><div class="card-title">&#x1f500; 五大命运改变原则</div>
+<div class="fate-card"><div class="fate-num">1</div><h4>不同思维，你的命运有所不同可能</h4><p class="fate-desc">从「语文思维」到「数学思维」的转变。说"还行""差不多""马马虎虎"是语文思维；用具体数字量化目标是数学思维。</p>
+<div class="grid-2"><div><label>你现在的思维模式是？</label><select id="fate-thinking" onchange="saveFateInput('thinking',this.value)"><option value="">请选择...</option><option value="语文思维">语文思维 - "还行""差不多"</option><option value="过渡中">正在从语文思维向数学思维过渡</option><option value="数学思维">数学思维 - 用数字量化一切</option></select></div>
+<div><label>你的思维自评得分（1~10）</label><input type="number" id="fate-thinking-score" min="1" max="10" placeholder="如 5" onchange="saveFateInput('thinkingScore',this.value)"></div></div></div>
+<div class="fate-card"><div class="fate-num">2</div><h4>每月的固定开支，决定你的生活水平和行动范围</h4><p class="fate-desc">固定开支越高，你的行动范围越窄，冒险能力越低。降低固定开支 = 增加自由度。</p>
+<div class="grid-2"><div><label>月固定开支（元）</label><input type="number" id="fate-fixed-cost" placeholder="如 5000" onchange="saveFateInput('fixedCost',this.value)"></div>
+<div><label>占月收入比例（%）</label><input type="text" id="fate-cost-ratio" readonly placeholder="自动计算"></div></div>
+<div id="fate-cost-advice" class="mt-8"></div></div>
+<div class="fate-card"><div class="fate-num">3</div><h4>你过不去下的「债」，你将来早晚得还</h4><p class="fate-desc">技能债、认知债、健康债、人际债 - 这些「债」不会消失，只会在未来以更大的代价偿还。</p>
+<label>你现在有哪些「人生债」？</label><textarea id="fate-debts" rows="3" placeholder="如：英语一直没学、某项证书没考、身体缺乏锻炼..." onchange="saveFateInput('debts',this.value)"></textarea></div>
+<div class="fate-card"><div class="fate-num">4</div><h4>「一鸣惊人」的机会，决定了你的将来</h4><p class="fate-desc">你一生中真正能改变命运的机会不多。识别它们、抓住它们，需要提前积累。</p>
+<label>你目前能识别的「一鸣惊人」机会有哪些？</label><textarea id="fate-opportunities" rows="3" placeholder="如：行业新技术爆发、某个新兴市场、某个关键人脉..." onchange="saveFateInput('opportunities',this.value)"></textarea></div>
+<div class="fate-card"><div class="fate-num">5</div><h4>做什么事情做得顺手，最终决定你的发展方向</h4><p class="fate-desc">不是你选择做什么，而是你做得顺手的事情反过来塑造了你。留意那些你做得比别人轻松的事。</p>
+<label>你做得最顺手、最得心应手的事情是什么？</label><textarea id="fate-talent" rows="3" placeholder="如：数据分析、文字表达、人际沟通、逻辑推理..." onchange="saveFateInput('talent',this.value)"></textarea></div></div>
+<div class="card"><div class="card-title">&#x1f3af; 命运改变诊断</div><div id="fate-diagnosis"><div class="empty-state"><div class="icon">&#x1f3af;</div><p>填写上方五大法则后，此处将生成你的命运改变诊断报告</p></div></div>
+<button class="btn btn-primary mt-12" onclick="generateFateDiagnosis()">生成诊断报告</button></div>`,
+time:`<div class="page-header"><h2>时间管理</h2><p>年计划做战略 -> 月计划做统筹 -> 日计划做执行</p></div>
+<div class="card"><div class="card-title">&#x23f3; 规划时间投入原则（10%）</div><div class="grid-4">
+<div class="principle-card"><div class="ptitle">十年规划</div><div class="pdesc">用 1 年时间思考</div><div class="pval">1 年</div></div>
+<div class="principle-card"><div class="ptitle">年计划</div><div class="pdesc">365 天中用 36 天</div><div class="pval">36 天</div></div>
+<div class="principle-card"><div class="ptitle">月计划</div><div class="pdesc">30 天中用 3 天</div><div class="pval">3 天</div></div>
+<div class="principle-card"><div class="ptitle">日计划</div><div class="pdesc">用 30 分钟~1 小时</div><div class="pval">30~60 min</div></div>
+</div></div>
+<div class="card"><div class="card-title">&#x1f4cb; 今日任务 — 1-3-5 工作法</div><p class="text-sm text-secondary mb-16">1个创造类 + 3个沟通类 + 5个琐碎类 - 用莫斯科原则排序优先级</p>
+<div class="work-135">
+<div class="work-col work-col-1"><h4><span>&#x1f525; 创造类（主线）</span><span class="count" id="count-main">0/1</span></h4><div id="tasks-main"></div><input type="text" class="mini-task-input" placeholder="+ 添加创造类任务..." onkeypress="if(event.key==='Enter')addTask('main',this.value);this.value='';"><div class="text-xs mt-8" style="color:#991b1b">2~3h，不可被打断，改变命运的主线任务</div></div>
+<div class="work-col work-col-3"><h4><span>&#x1f4ac; 沟通类（支线）</span><span class="count" id="count-side">0/3</span></h4><div id="tasks-side"></div><input type="text" class="mini-task-input" placeholder="+ 添加沟通类任务..." onkeypress="if(event.key==='Enter')addTask('side',this.value);this.value='';"><div class="text-xs mt-8" style="color:#92400e">各1h，与他人互动或优化流程</div></div>
+<div class="work-col work-col-5"><h4><span>&#x1f34c; 琐碎类</span><span class="count" id="count-mini">0/5</span></h4><div id="tasks-mini"></div><input type="text" class="mini-task-input" placeholder="+ 添加琐碎任务..." onkeypress="if(event.key==='Enter')addTask('mini',this.value);this.value='';"><div class="text-xs mt-8" style="color:#3730a3">各20min，告知性/碎片任务</div></div>
+</div><div class="tip-box mt-12"><strong>莫斯科原则排序：</strong>Must have（必须有）-> Should have（应该有）-> Could have（可以有）-> Won't have（不做）。时间不要用来做待办事项，要用「主线任务+线性思维」来排序。给自己留一些闲置资源。</div></div>
+<div class="grid-2"><div class="card"><div class="card-title">&#x1f4c8; 年度战略目标</div><div id="year-goals-list"></div><div class="flex gap-8 mt-12"><input type="text" id="new-year-goal" placeholder="输入年度战略目标..." style="flex:1"><button class="btn btn-primary btn-sm" onclick="addYearGoal()">添加</button></div>
+<div class="tip-box mt-12"><strong>为什么你的年计划都是错的？</strong>因为大多数年计划只是「愿望清单」，没有拆解为可执行的月度行动。年计划是用来做战略规划的，不是用来列待办的。</div></div>
+<div class="card"><div class="card-title">&#x1f4c7; 月度统筹看板</div>
+<label>本月主线任务（来自年计划拆解）</label><textarea id="mp-main" rows="2" placeholder="本月最重要的1~2个主线任务..." onchange="saveMonthPlan('main',this.value)"></textarea>
+<label class="mt-12">本月修炼重点</label><textarea id="mp-cultivation" rows="2" placeholder="本月重点修炼的技能/知识..." onchange="saveMonthPlan('cultivation',this.value)"></textarea>
+<label class="mt-12">本月需要断舍离的</label><textarea id="mp-drop" rows="2" placeholder="不做什么比做什么更重要..." onchange="saveMonthPlan('drop',this.value)"></textarea></div></div>`,
+knowledge:`<div class="page-header"><h2>知识修炼</h2><p>「学」和「习」是两回事 - 从知道到内化至少需要 6 倍的练习时间</p></div>
+<div class="card"><div class="card-title">&#x2696; 学与习的比例（1:6 ~ 1:10）</div>
+<div class="tip-box"><strong>关键原则：</strong>听老师讲课 1 小时，你需要至少 6 小时的练习时间。一年只有 600 小时碎片时间的你，其实只有不到 100 小时的学习时间，剩下 500 多小时都得用来实践和练习。</div>
+<div class="grid-2 mt-12"><div><label>本月学习时间（小时）</label><input type="number" id="km-learn" placeholder="如 20" oninput="calcKnowledgeRatio()"></div>
+<div><label>本月练习时间（小时）</label><input type="number" id="km-practice" placeholder="如 120" oninput="calcKnowledgeRatio()"></div></div>
+<div class="mt-12"><div class="flex-between mb-8"><span class="text-secondary text-sm">你的学:习比例</span><span class="font-bold" id="km-ratio">--</span></div>
+<div class="ratio-bar"><div class="ratio-learn" id="km-learn-bar" style="width:0%">学</div><div class="ratio-practice" id="km-practice-bar" style="width:0%">习</div></div>
+<div class="text-sm" id="km-status">请输入数据</div></div></div>
+<div class="card"><div class="card-title">&#x1f4da; 在修炼的知识项</div><div id="knowledge-list"></div><div class="flex gap-8 mt-12"><input type="text" id="new-knowledge" placeholder="如：Python数据分析、PPT设计、演讲表达..." style="flex:1"><button class="btn btn-primary btn-sm" onclick="addKnowledge()">添加</button></div></div>
+<div class="card"><div class="card-title">&#x1f4d6; 「十遍读书法」追踪</div><div class="tip-box"><strong>十遍读书法：</strong>一本好书至少读十遍，每次带着不同的问题去读，才能夯实理论认知。不是读完一遍就算了，而是反复咀嚼直到内化。</div>
+<div id="reading-list"></div><div class="flex gap-8 mt-12"><input type="text" id="new-reading" placeholder="输入书名..." style="flex:1"><button class="btn btn-primary btn-sm" onclick="addReading()">添加</button></div></div>
+<div class="card"><div class="card-title">&#x1f9e9; 七步思维法 — 格物致知</div><div class="grid-2">
+<div class="principle-card"><div class="ptitle">1. 是什么</div><div class="pdesc">定义概念，明确边界</div></div>
+<div class="principle-card"><div class="ptitle">2. 为什么</div><div class="pdesc">理解原理和动因</div></div>
+<div class="principle-card"><div class="ptitle">3. 怎么做</div><div class="pdesc">拆解步骤和流程</div></div>
+<div class="principle-card"><div class="ptitle">4. 成本是多少</div><div class="pdesc">时间、精力、金钱成本</div></div>
+<div class="principle-card"><div class="ptitle">5. 收益是多少</div><div class="pdesc">投资回报率计算</div></div>
+<div class="principle-card"><div class="ptitle">6. 舍弃什么</div><div class="pdesc">不做什么比做什么更重要</div></div>
+<div class="principle-card" style="grid-column:span 2;"><div class="ptitle">7. 经营管理思维</div><div class="pdesc">能多赚多少？可以赚多久？如何做到？</div></div>
+</div></div>
+<div class="card"><div class="card-title">&#x1f5fa; 「迷宫算法」- 破解专业迷魂阵</div>
+<div class="quote">"如何让你快速看清自己的位置？对标行业公认的标杆，收集海量参考素材，然后就是时间的积累了。"</div>
+<div class="grid-2"><div><label>你的行业对标人物/岗位</label><textarea id="maze-benchmark" rows="2" placeholder="如：对标XX公司的XX岗位、对标某行业大V..." onchange="saveMaze('benchmark',this.value)"></textarea></div>
+<div><label>你的专业知识地图完成度（%）</label><input type="number" id="maze-progress" min="0" max="100" placeholder="如 30" onchange="saveMaze('progress',this.value)"></div></div></div>`,
+path:`<div class="page-header"><h2>修炼路径</h2><p>赚钱的三种法则：时间换钱 -> 技术换钱 -> 资源换钱</p></div>
+<div class="card"><div class="card-title">&#x1f6e3; 你的修炼阶段</div>
+<div class="path-steps">
+<div class="path-step s1" id="path-s1" onclick="selectPath(1)"><div class="step-num">STAGE 1</div><div class="step-title">时间换钱</div><div class="step-desc">靠出卖时间获取收入<br>月收入 < 1万<br>修炼执行力与基本功</div><div class="step-arrow">&#x27a4;</div></div>
+<div class="path-step s2" id="path-s2" onclick="selectPath(2)"><div class="step-num">STAGE 2</div><div class="step-title">技术换钱</div><div class="step-desc">靠专业知识获取溢价<br>月收入 1~3万<br>修炼不可替代性</div><div class="step-arrow">&#x27a4;</div></div>
+<div class="path-step s3" id="path-s3" onclick="selectPath(3)"><div class="step-num">STAGE 3</div><div class="step-title">资源换钱</div><div class="step-desc">靠资源整合获取被动收入<br>月收入 3万+<br>修炼经营思维</div></div>
+</div><div class="tip-box tip-danger"><strong>&#x26a0; 不可乱序修炼！</strong>没有经历过「时间换钱」的积累，直接想「钱生钱」，大概率会亏掉。很多中小企业主因为缺乏知识积累，经济周期一到就把赚的钱全吐了出来。</div></div>
+<div class="card"><div class="card-title">&#x1f4ca; 收入诊断公式</div><div class="grid-3">
+<div><label>当前月收入</label><input type="number" id="path-current" placeholder="如 8000" oninput="calcPath()"></div>
+<div><label>每日有效工作小时</label><input type="number" id="path-hours" placeholder="如 8" oninput="calcPath()"></div>
+<div><label>每月工作天数</label><input type="number" id="path-days" placeholder="如 22" oninput="calcPath()"></div>
+</div><div class="mt-12" id="path-diagnosis"><div class="grid-3">
+<div class="stat-card"><div class="stat-value" id="pd-hourly">--</div><div class="stat-label">时薪（元/小时）</div></div>
+<div class="stat-card s-accent"><div class="stat-value" id="pd-stage">--</div><div class="stat-label">当前修炼阶段</div></div>
+<div class="stat-card s-success"><div class="stat-value" id="pd-next">--</div><div class="stat-label">下一阶段目标时薪</div></div>
+</div><div class="tip-box mt-12" id="pd-advice"><strong>诊断建议：</strong>请输入数据获取修炼建议</div></div></div>
+<div class="card"><div class="card-title">&#x1f3af; 「第一桶金」理论</div>
+<div class="quote">"你的信用额度，决定你未来的战地。"</div>
+<div class="chart-container-sm"><canvas id="chart-income-type"></canvas></div>
+<div class="grid-2 mt-12"><div><label>月度主动收入（元）</label><input type="number" id="fg-a" placeholder="如 12000" oninput="calcFirstGold()"></div>
+<div><label>月度被动收入（元）</label><input type="number" id="fg-p" placeholder="如 500" oninput="calcFirstGold()"></div></div>
+<div class="mt-12" id="fg-result"></div></div>`,
+trial:`<div class="page-header"><h2>试错资本</h2><p>把「犯错资本」变成「试错资本」- 你的身价会翻百倍</p></div>
+<div class="card"><div class="card-title">&#x1f9ea; 试错记录</div>
+<div class="tip-box"><strong>核心区别：</strong>「犯错」是稀里糊涂地错了，不知道为什么；「试错」是有目的、有假设、有复盘的实验。每一次有意识的试错，都是在积累你的「人生经验值」。</div>
+<div class="grid-4 mb-16 mt-12">
+<div class="stat-card s-danger"><div class="stat-value" id="trial-total">0</div><div class="stat-label">总试错次数</div></div>
+<div class="stat-card s-accent"><div class="stat-value" id="trial-learn">0</div><div class="stat-label">已复盘学习</div></div>
+<div class="stat-card s-success"><div class="stat-value" id="trial-success">0</div><div class="stat-label">转化为经验</div></div>
+<div class="stat-card s-purple"><div class="stat-value" id="trial-rate">0%</div><div class="stat-label">经验转化率</div></div>
+</div>
+<div id="trial-list"></div><button class="btn btn-primary mt-12" onclick="showTrialModal()">+ 记录一次试错</button></div>
+<div class="card"><div class="card-title">&#x1f4c2; 「麦田理论」- 如何在人生中找到最大的麦穗</div>
+<div class="quote">"如何在人生的'麦田'里，找到最大的麦穗？不是一见就摘，也不是走到底再回头摘。而是前1/3只观察，中间1/3开始选择，后1/3果断行动。"</div>
+<p class="text-sm text-secondary">将你的人生阶段对应到「麦田理论」：</p>
+<div class="grid-3 mt-12">
+<div class="principle-card"><div class="ptitle">观察期（前1/3）</div><div class="pdesc">大量收集信息，不急于做决定。了解行业全貌，建立对标体系。</div></div>
+<div class="principle-card"><div class="ptitle">选择期（中1/3）</div><div class="pdesc">开始有针对性地试错，积累经验，逐步缩小范围。</div></div>
+<div class="principle-card"><div class="ptitle">行动期（后1/3）</div><div class="pdesc">果断行动，深耕一个方向。不再左顾右盼。</div></div>
+</div></div>`,
+intel:`<div class="page-header"><h2>情报系统</h2><p>建立自己的「情报监测网」，遇事决策不再盲目</p></div>
+<div class="card"><div class="card-title">&#x1f50d; 灵魂拷问：10个问题审查你的信息系统</div>
+<p class="text-sm text-secondary mb-16">请认真回答以下问题，审视你的信息源是否支撑你的未来发展</p>
+<div id="intel-questions"></div><button class="btn btn-primary mt-12" onclick="saveIntel()">保存我的情报审查</button></div>
+<div class="card"><div class="card-title">&#x1f508; 信息茧房检查</div>
+<div class="tip-box tip-danger"><strong>「信息茧房」效应：</strong>你消费的信息会锁死你的未来。如果你的信息源大多是娱乐、八卦、短视频，那么你的思维也会被锁在这个层次。</div>
+<div class="grid-2 mt-12"><div><label>与收入相关的专业知识占比（%）</label><input type="number" id="info-professional" placeholder="如 30" min="0" max="100" oninput="calcInfoRatio()"></div>
+<div><label>娱乐休闲信息占比（%）</label><input type="number" id="info-entertainment" placeholder="如 50" min="0" max="100" oninput="calcInfoRatio()"></div></div>
+<div class="mt-12" id="info-result"></div></div>
+<div class="card"><div class="card-title">&#x1f5fa; 专业知识地图</div><p class="text-sm text-secondary mb-16">搭建自己的「专业知识地图」，明确需要深耕的领域</p>
+<div id="knowledge-map-list"></div><div class="flex gap-8 mt-12"><input type="text" id="new-map-item" placeholder="如：行业趋势、竞品分析、核心技术..." style="flex:1"><button class="btn btn-primary btn-sm" onclick="addMapItem()">添加</button></div></div>`,
+review:`<div class="page-header"><h2>复盘中心</h2><p>用「十年日记」思维 - 与不同时空的自己对话</p></div>
+<div class="card"><div class="card-title">&#x1f4c5; 定期复盘</div><div class="grid-3">
+<div class="principle-card text-center"><div class="ptitle">日复盘</div><div class="pdesc">主线任务完成了吗？<br>有什么收获和教训？</div><button class="btn btn-outline btn-sm mt-8" onclick="startReview('daily')">开始日复盘</button></div>
+<div class="principle-card text-center"><div class="ptitle">周复盘</div><div class="pdesc">本周计划完成了多少？<br>时间花在哪里了？</div><button class="btn btn-outline btn-sm mt-8" onclick="startReview('weekly')">开始周复盘</button></div>
+<div class="principle-card text-center"><div class="ptitle">月复盘</div><div class="pdesc">月度目标达成率？<br>修炼进度如何？</div><button class="btn btn-outline btn-sm mt-8" onclick="startReview('monthly')">开始月复盘</button></div>
+</div></div>
+<div class="card"><div class="card-title">&#x1f4c8; 成长趋势分析</div><div class="chart-container"><canvas id="chart-growth"></canvas></div><p class="text-sm text-muted text-center">基于复盘记录自动生成成长趋势图</p></div>
+<div class="card"><div class="card-title">&#x1f4dd; 复盘记录</div><div id="review-list"></div></div>
+<div class="card"><div class="card-title">&#x2705; 读者自我检查清单</div><div class="grid-2"><div><h4 class="mb-8 text-secondary text-sm">&#x2714; 已做到</h4><ul class="task-list" id="checklist-done"></ul></div>
+<div><h4 class="mb-8 text-secondary text-sm">&#x2716; 待完成</h4><ul class="task-list" id="checklist-todo"></ul></div></div></div>`,
+principles:`<div class="page-header"><h2>核心原则</h2><p>从「语文思维」到「数学思维」的转变 - 用数据支撑决策</p></div>
+<div class="card"><div class="card-title">&#x1f4a1; 六大核心原则</div>
+<div class="principle-card"><div class="ptitle">1. 10% 规划原则</div><div class="pdesc">做十年规划用 1 年思考；做年计划用 36 天；做月计划用 3 天；做日计划用 30 分钟~1 小时。</div><div class="pval">10%</div></div>
+<div class="principle-card"><div class="ptitle">2. 10%~15% 学习投资原则</div><div class="pdesc">想要赚到 N 万的年收入，至少应投资 N 的 10%~15% 作为学习费用。你有这笔「种子钱」吗？</div><div class="pval">10%~15%</div></div>
+<div class="principle-card"><div class="ptitle">3. 10%~15% 生活成本原则</div><div class="pdesc">必须用收入的 10% 用于日常开销，并搭建 3~6 个月生活费储备。心无挂碍才能进入心流。</div><div class="pval">10%~15%</div></div>
+<div class="principle-card"><div class="ptitle">4. 时间成本原则</div><div class="pdesc">月收入过万的时间成本是 56 元/小时。当你知道每小时的代价，就不会把时间浪费在 3~5 分钟的短视频上。</div><div class="pval">&#x2265 56 元/h</div></div>
+<div class="principle-card"><div class="ptitle">5. 学:习比例 = 1:6 ~ 1:10</div><div class="pdesc">听 1 小时课，至少需要 6 小时练习。从知道到内化，至少需要 6 倍的训练时间。</div><div class="pval">1:6 ~ 1:10</div></div>
+<div class="principle-card"><div class="ptitle">6. 基于现实世界修炼</div><div class="pdesc">月收入 5000，下一步目标是 6000，不是 50000。一步一个脚印，基于真实能力建立对标系统。</div><div class="pval">&#x1f4c8; 真实对标</div></div>
+</div>
+<div class="card"><div class="card-title">&#x1f9fe; 原书金句</div>
+<div class="quote">"不去做什么事情，比「做什么事情」更加弥足珍贵。因为你在某一个时期不去做什么事情，是一项非常严格的自律。"</div>
+<div class="quote">"任何学习类的投资，如果无法改变你在交易环节中的结果价值，或者无法改变你的社交结构，最终都是无效努力。"</div>
+<div class="quote">"你有很多机会超越比你更强的人。"</div>
+<div class="quote">"正是因为你这么努力地学习这么多「有用的」知识，所以你才变穷的呀！"</div>
+<div class="quote">"用 10 年的总工资，买工作城市当地的一套房子。"</div>
+<div class="quote">"正是因为你开始有「投资回报率」的概念之后，你才会知道：不去做什么事情，比「做什么事情」更加弥足珍贵。"</div>
+</div>
+<div class="card"><div class="card-title">&#x1f4ca; 关键公式</div><div class="grid-2">
+<div class="principle-card"><div class="ptitle">时薪计算</div><div class="pdesc">月收入 &#xf7; (每月工作日 &#xd7; 每日有效工作小时)</div></div>
+<div class="principle-card"><div class="ptitle">学习投资额</div><div class="pdesc">目标年收入 &#xd7; 10%~15%</div></div>
+<div class="principle-card"><div class="ptitle">应急储备金</div><div class="pdesc">月生活费 &#xd7; 3~6 个月</div></div>
+<div class="principle-card"><div class="ptitle">10年买房目标</div><div class="pdesc">当地房价 &#xf7; 10 = 年均目标收入</div></div>
+<div class="principle-card"><div class="ptitle">修炼时间</div><div class="pdesc">学习时间 &#xd7; 6~10 = 所需练习时间</div></div>
+<div class="principle-card"><div class="ptitle">收入分配</div><div class="pdesc">10% 种子 + 20% 保险 + 30% 投资 + 40% 生活</div></div>
+</div></div>`
+};
+
+// ====== 渲染页面到主内容区 ======
+function renderPage(pageId) {
+  const main = document.getElementById('main-content');
+  main.innerHTML = '<div class="page active">' + (PAGES[pageId] || '') + '</div>';
+}
+
+// ====== 数据管理 ======
+const STORE_KEY='life_planner_data_v2';let store={};
+const DB_NAME='life_planner_db';const DB_STORE='kv';const DB_KEY='main_data';
+const BACKUP_KEY='life_planner_backup_settings';
+let _idb=null,_idbPromise=null;
+function ensureIDB(){if(!_idbPromise){_idbPromise=new Promise(resolve=>{if(!window.indexedDB){resolve(null);return}const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=e=>{const db=e.target.result;if(!db.objectStoreNames.contains(DB_STORE))db.createObjectStore(DB_STORE)};req.onsuccess=e=>{_idb=e.target.result;resolve(_idb)};req.onerror=()=>resolve(null)})}return _idbPromise}
+function idbGet(key){return new Promise(resolve=>{if(!_idb){resolve(null);return}try{const tx=_idb.transaction(DB_STORE,'readonly');const req=tx.objectStore(DB_STORE).get(key);req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>resolve(null)}catch(e){resolve(null)}})}
+function idbSet(key,val){if(!_idb)return;try{const tx=_idb.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put(val,key);tx.onerror=()=>{}}catch(e){}}
+function loadStore(){try{const r=localStorage.getItem(STORE_KEY);store=r?JSON.parse(r):{}}catch(e){store={}}if(Object.keys(store).length===0){ensureIDB().then(()=>idbGet(DB_KEY)).then(d=>{if(d&&Object.keys(d).length>0){store=d;try{localStorage.setItem(STORE_KEY,JSON.stringify(store))}catch(e){}showToast('已从 IndexedDB 自动恢复数据');renderPage('dashboard');renderDashboard()}})}else{ensureIDB()}}
+function saveStore(){try{localStorage.setItem(STORE_KEY,JSON.stringify(store))}catch(e){}if(_idb){idbSet(DB_KEY,store)}else{ensureIDB().then(()=>idbSet(DB_KEY,store))}}
+function getBackupSettings(){try{const s=JSON.parse(localStorage.getItem(BACKUP_KEY));return s||{interval:7,lastBackup:null}}catch(e){return{interval:7,lastBackup:null}}}
+function setBackupSettings(s){localStorage.setItem(BACKUP_KEY,JSON.stringify(s))}
+function checkAutoBackup(){const s=getBackupSettings();if(!s.interval||s.interval===0)return;const now=Date.now();const last=s.lastBackup?new Date(s.lastBackup).getTime():0;const days=Math.floor((now-last)/86400000);if(days>=s.interval){showToast('已有'+(days>999?'很久':days)+'天未导出备份文件，建议点击左下角「备份」导出','warning')}}
+function openBackupSettings(){const s=getBackupSettings();document.getElementById('bk-interval').value=s.interval||0;document.getElementById('bk-last').textContent=s.lastBackup?new Date(s.lastBackup).toLocaleString('zh-CN'):'从未备份';document.getElementById('bk-idb').textContent=_idb?'已启用':'不支持';document.getElementById('bk-idb').className=_idb?'tag tag-green':'tag tag-red';document.getElementById('bk-count').textContent=Object.keys(store).length;document.getElementById('backup-modal').classList.add('show')}
+function saveBackupSettings(){const s=getBackupSettings();s.interval=parseInt(document.getElementById('bk-interval').value);setBackupSettings(s);showToast('备份设置已保存');updateBackupInfo()}
+function doBackupNow(){const d=JSON.stringify(store,null,2);const b=new Blob([d],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='life-planner-backup-'+new Date().toISOString().split('T')[0]+'.json';a.click();URL.revokeObjectURL(u);const s=getBackupSettings();s.lastBackup=new Date().toISOString();setBackupSettings(s);showToast('备份完成，请保存下载的文件');updateBackupInfo();closeModal()}
+function updateBackupInfo(){const s=getBackupSettings();const el=document.getElementById('backup-info');if(!el)return;if(!s.interval||s.interval===0){el.innerHTML='';return}const days=s.lastBackup?Math.floor((Date.now()-new Date(s.lastBackup).getTime())/86400000):999;const cls=days<=s.interval?'ok':days<=s.interval*2?'warn':'danger';const txt=s.lastBackup?'上次备份 '+days+' 天前':'从未备份';el.innerHTML='<span class="dot '+cls+'"></span>'+txt}
+function get(k,d){return store[k]!==undefined?store[k]:d}
+function set(k,v){store[k]=v;saveStore()}
+
+function showToast(msg,type='success'){const c=document.getElementById('toast-container');const t=document.createElement('div');t.className='toast'+(type==='error'?' toast-error':type==='warning'?' toast-warning':'');const ic=type==='success'?'&#x2714;':type==='error'?'&#x2716;':'&#x26a0;';t.innerHTML='<span>'+ic+'</span><span>'+msg+'</span>';c.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(20px)';setTimeout(()=>t.remove(),300)},3000)}
+
+function exportData(){const d=JSON.stringify(store,null,2);const b=new Blob([d],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='life-planner-backup-'+new Date().toISOString().split('T')[0]+'.json';a.click();URL.revokeObjectURL(u);const s=getBackupSettings();s.lastBackup=new Date().toISOString();setBackupSettings(s);updateBackupInfo();showToast('数据已导出')}
+function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=(ev)=>{try{store=JSON.parse(ev.target.result);saveStore();showToast('数据导入成功，页面将刷新');setTimeout(()=>location.reload(),1500)}catch(err){showToast('导入失败：文件格式错误','error')}};r.readAsText(f)}
+
+// ====== 导航 ======
+document.querySelectorAll('.nav-item').forEach(item=>{
+item.addEventListener('click',()=>{
+document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+item.classList.add('active');
+renderPage(item.dataset.page);
+onPageEnter(item.dataset.page);
+})});
+
+function onPageEnter(page){switch(page){
+case'dashboard':renderDashboard();break;case'lifeclock':renderLifeClock();break;case'resource':renderResource();break;case'decade':renderDecade();break;case'fate':renderFate();break;case'time':renderTime();break;case'knowledge':renderKnowledge();break;case'path':renderPath();break;case'trial':renderTrial();break;case'intel':renderIntel();break;case'review':renderReview();break}}
+
+const charts={};function destroyChart(k){if(charts[k]){charts[k].destroy();delete charts[k]}}
+
+// ====== 仪表盘 ======
+function saveSetup(){const by=parseInt(document.getElementById('setup-birth-year').value);const mi=parseInt(document.getElementById('setup-monthly-income').value);const ti=parseInt(document.getElementById('setup-target-income').value);if(!by||!mi){showToast('请填写出生年份和月收入','error');return}set('birthYear',by);set('monthlyIncome',mi);set('targetIncome',ti||mi*1.5);showToast('设置已保存');renderDashboard()}
+
+function renderDashboard(){
+const by=get('birthYear'),inc=get('monthlyIncome'),tg=get('targetIncome');
+if(by)document.getElementById('setup-birth-year').value=by;
+if(inc)document.getElementById('setup-monthly-income').value=inc;
+if(tg)document.getElementById('setup-target-income').value=tg;
+if(!by||!inc){['stat-age','stat-hourly','stat-learning','stat-path'].forEach(id=>document.getElementById(id).textContent='--');return}
+const cy=new Date().getFullYear();const age=cy-by;
+document.getElementById('stat-age').textContent=age;
+let st='成长期';if(age>=50)st='收获期';else if(age>=35)st='黄金期';else if(age>=22)st='奋斗期';
+document.getElementById('stat-stage').textContent=st;
+const hr=Math.round(inc/22/8);
+document.getElementById('stat-hourly').textContent=hr;
+document.getElementById('stat-hourly-sub').textContent=inc.toLocaleString()+' / 22天 / 8h';
+document.getElementById('stat-learning').textContent=Math.round(tg*12*0.1).toLocaleString();
+let ps='--',psub='--';if(inc<10000){ps='第一阶段';psub='时间换钱'}else if(inc<30000){ps='第二阶段';psub='技术换钱'}else{ps='第三阶段';psub='资源换钱'}
+document.getElementById('stat-path').textContent=ps;
+document.getElementById('stat-path-sub').textContent=psub;
+document.getElementById('qs-daily').textContent=hr+' 元/h';
+document.getElementById('qs-living').textContent=Math.round(inc*0.1)+'~'+Math.round(inc*0.15)+' 元/月';
+document.getElementById('qs-emergency').textContent=Math.round(inc*0.15*6).toLocaleString()+' 元';
+document.getElementById('qs-ratio').textContent='1:6 ~ 1:10';
+document.getElementById('qs-10yr').textContent=(inc*12*10).toLocaleString()+' 元';
+renderDashboardTasks();renderIncomeSplitChart(inc)}
+
+function renderIncomeSplitChart(inc){destroyChart('is');const ctx=document.getElementById('chart-income-split');if(!ctx)return;charts.is=new Chart(ctx,{type:'doughnut',data:{labels:['种子钱 10%','保险钱 20%','投资钱 30%','生活钱 40%'],datasets:[{data:[inc*0.1,inc*0.2,inc*0.3,inc*0.4],backgroundColor:['#f59e0b','#3b82f6','#10b981','#8b5cf6'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},cutout:'55%'}})}
+
+function renderDashboardTasks(){const t=get('tasks',{main:[],side:[],mini:[]});const c=document.getElementById('dashboard-tasks');const all=[...(t.main||[]).map(x=>({...x,type:'main'})),...(t.side||[]).map(x=>({...x,type:'side'})),...(t.mini||[]).map(x=>({...x,type:'mini'}))];if(!all.length){c.innerHTML='<div class="empty-state"><div class="icon">&#x1f4dd;</div><p>前往「时间管理」添加今日任务</p></div>';return}c.innerHTML='<ul class="task-list">'+all.map(x=>'<li class="task-item '+(x.done?'completed':'')+'"><div class="task-check '+(x.done?'done':'')+'" onclick="toggleTask(\''+x.type+'\',\''+x.id+'\')"></div><div class="task-text">'+x.text+'</div><span class="task-type '+(x.type==='main'?'type-main':x.type==='side'?'type-side':'type-mini')+'">'+(x.type==='main'?'创造':x.type==='side'?'沟通':'琐碎')+'</span></li>').join('')+'</ul>'}
+
+// ====== 人生时钟 ======
+function renderLifeClock(){const by=get('birthYear');if(!by){document.getElementById('lc-age').textContent='--';document.getElementById('lc-label').textContent='请先在总览页设置出生年份';return}const cy=new Date().getFullYear();const age=cy-by;const mx=80;const pr=Math.min(age/mx,1);document.getElementById('lc-age').textContent=age;let st='成长期',cl='#f59e0b';if(age>=50){st='收获期';cl='#8b5cf6'}else if(age>=35){st='黄金期';cl='#10b981'}else if(age>=22){st='奋斗期';cl='#3b82f6'}document.getElementById('lc-label').textContent=st;document.getElementById('lc-remaining').textContent='剩余 '+(mx-age)+' 年';const c=2*Math.PI*150;document.getElementById('lc-progress').setAttribute('stroke-dasharray',(c*pr)+' '+c);
+const mk=document.getElementById('lc-marks');const sp=[{a:22},{a:35},{a:50},{a:65}];mk.innerHTML=sp.map(s=>{const an=(s.a/mx)*360-90;const rd=an*Math.PI/180;return'<line x1="'+(170+135*Math.cos(rd))+'" y1="'+(170+135*Math.sin(rd))+'" x2="'+(170+165*Math.cos(rd))+'" y2="'+(170+165*Math.sin(rd))+'" stroke="#cbd5e1" stroke-width="2"/>'}).join('');
+const ml=[{a:0,t:'出生',d:'人生起点'},{a:6,t:'入学',d:'开始接受教育'},{a:12,t:'青春期',d:'自我意识觉醒'},{a:18,t:'成年',d:'法律意义上的独立'},{a:22,t:'步入社会',d:'开始职业生涯'},{a:25,t:'职业定型',d:'确定发展方向'},{a:30,t:'而立之年',d:'经济独立，事业有成'},{a:35,t:'黄金期开始',d:'从技术换钱到资源换钱'},{a:45,t:'中年关键期',d:'被动收入管道建立'},{a:55,t:'收获期',d:'经验变现为主'},{a:65,t:'退休',d:'靠被动收入生活'},{a:80,t:'人生终点',d:'35年工作养活80年'}];
+document.getElementById('milestone-timeline').innerHTML=ml.map(m=>'<div class="timeline-item '+(age>=m.a?'done':'')+(age===m.a?' current':'')+'"><div class="time">'+m.a+' 岁 '+(age>=m.a?'(已过)':'(未来)')+'</div><div class="content"><strong>'+m.t+'</strong> - '+m.d+'</div></div>').join('')}
+
+// ====== 资源配置 ======
+function renderResource(){const inc=get('monthlyIncome');if(inc){document.getElementById('res-income').value=inc;calcResource()}const ef=get('efSaved');if(ef)document.getElementById('ef-saved').value=ef;calcEmergency()}
+function calcResource(){const inc=parseInt(document.getElementById('res-income').value)||0;const ex=parseInt(document.getElementById('res-expense').value)||0;if(inc>0){document.getElementById('r1-amount').textContent=Math.round(inc*0.1).toLocaleString()+' 元';document.getElementById('r2-amount').textContent=Math.round(inc*0.2).toLocaleString()+' 元';document.getElementById('r3-amount').textContent=Math.round(inc*0.3).toLocaleString()+' 元';document.getElementById('r4-amount').textContent=Math.round(inc*0.4).toLocaleString()+' 元';document.getElementById('res-warning').style.display=ex>inc*0.4?'block':'none';document.getElementById('ef-target').textContent=Math.round(inc*0.15*6).toLocaleString()+' 元';calcEmergency();renderResourcePie(inc)}}
+function renderResourcePie(inc){destroyChart('rp');const ctx=document.getElementById('chart-resource-pie');if(!ctx)return;charts.rp=new Chart(ctx,{type:'pie',data:{labels:['种子钱 10%','保险钱 20%','投资钱 30%','生活钱 40%'],datasets:[{data:[inc*0.1,inc*0.2,inc*0.3,inc*0.4],backgroundColor:['#f59e0b','#3b82f6','#10b981','#8b5cf6'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:12},padding:10}}}}})}
+function calcEmergency(){const inc=parseInt(document.getElementById('res-income').value)||get('monthlyIncome')||0;const sv=parseInt(document.getElementById('ef-saved').value)||0;const tg=Math.round(inc*0.15*6);if(tg>0){document.getElementById('ef-target').textContent=tg.toLocaleString()+' 元';const pc=Math.min(Math.round(sv/tg*100),100);document.getElementById('ef-pct-ring').textContent=pc+'%';const r=document.getElementById('ef-ring');const c=2*Math.PI*50;r.setAttribute('stroke-dasharray',(c*pc/100)+' '+c);set('efSaved',sv)}}
+
+// ====== 十年蓝图 ======
+function renderDecade(){const by=get('birthYear');const cy=new Date().getFullYear();const sy=by?by+22:cy;const dd=get('decadeData',{});let h='';for(let i=0;i<10;i++){const yr=sy+i;const ag=by?yr-by:22+i;const d=dd[yr];const hd=d&&d.goal;const ic=yr===cy;h+='<div class="decade-cell '+(hd?'has-data':'')+' '+(ic?'current':'')+'" onclick="editDecadeYear('+yr+','+ag+')"><div class="year-label">'+ag+'</div><div class="year-mark">'+(hd?'&#x2713;':(ic?'&#x25c9;':'&#x25cb;'))+'</div><div class="text-xs">'+yr+'</div></div>'}document.getElementById('decade-grid').innerHTML=h;const ns=get('northStar'),tg=get('tenYearGoal');if(ns)document.getElementById('decade-north-star').value=ns;if(tg)document.getElementById('decade-10yr-goal').value=tg;renderDecadeDiary()}
+let editingYear=null;
+function editDecadeYear(yr,ag){editingYear=yr;const d=get('decadeData',{})[yr]||{};document.getElementById('decade-detail').innerHTML='<div class="card"><div class="card-title">'+ag+' 岁（'+yr+'年）的目标</div><label>该年核心目标</label><textarea id="decade-year-goal" rows="2" placeholder="如：掌握XX技能、收入达到XX、建立XX管道...">'+(d.goal||'')+'</textarea><label class="mt-12">该年关键行动</label><textarea id="decade-year-action" rows="3" placeholder="拆解为具体可执行的行动步骤...">'+(d.action||'')+'</textarea><label class="mt-12">该年衡量指标</label><input type="text" id="decade-year-metric" placeholder="如：月收入达到1.5万、读完20本专业书..." value="'+(d.metric||'')+'"><div class="mt-12"><button class="btn btn-primary" onclick="saveDecadeYear()">保存</button>'+(d.goal?'<button class="btn btn-danger" onclick="deleteDecadeYear()" style="margin-left:8px;">删除</button>':'')+'</div></div>'}
+function saveDecadeYear(){if(!editingYear)return;const dd=get('decadeData',{});dd[editingYear]={goal:document.getElementById('decade-year-goal').value,action:document.getElementById('decade-year-action').value,metric:document.getElementById('decade-year-metric').value};set('decadeData',dd);showToast('年度目标已保存');renderDecade()}
+function deleteDecadeYear(){if(!editingYear)return;const dd=get('decadeData',{});delete dd[editingYear];set('decadeData',dd);editingYear=null;document.getElementById('decade-detail').innerHTML='<div class="empty-state"><div class="icon">&#x1f4c5;</div><p>点击上方任意年份，开始规划你的十年蓝图</p></div>';renderDecade()}
+function saveDecadePlan(){set('northStar',document.getElementById('decade-north-star').value);set('tenYearGoal',document.getElementById('decade-10yr-goal').value);showToast('十年规划已保存')}
+function renderDecadeDiary(){const ds=get('decadeDiaries',[]);const l=document.getElementById('decade-diary-list');if(!ds.length){l.innerHTML='<div class="empty-state"><p>暂无十年日记记录</p></div>';return}l.innerHTML=ds.map((d,i)=>'<div class="knowledge-card" style="border-left-color:var(--accent);"><div class="knowledge-header"><h4>'+d.date+'</h4><button class="btn btn-danger" onclick="deleteDecadeDiary('+i+')">&#x2715;</button></div>'+(d.decision?'<p class="text-sm mb-8"><strong>决策：</strong>'+d.decision+'</p>':'')+(d.feeling?'<p class="text-sm mb-8"><strong>感受：</strong>'+d.feeling+'</p>':'')+(d.message?'<p class="text-sm"><strong>给未来的自己：</strong>'+d.message+'</p>':'')+'</div>').join('')}
+function addDecadeDiary(){document.getElementById('dd-date').value=new Date().toISOString().split('T')[0];['dd-decision','dd-feeling','dd-message'].forEach(id=>document.getElementById(id).value='');document.getElementById('decade-diary-modal').classList.add('show')}
+function saveDecadeDiary(){const ds=get('decadeDiaries',[]);ds.unshift({date:document.getElementById('dd-date').value,decision:document.getElementById('dd-decision').value,feeling:document.getElementById('dd-feeling').value,message:document.getElementById('dd-message').value});set('decadeDiaries',ds);closeModal();showToast('十年日记已保存');renderDecadeDiary()}
+function deleteDecadeDiary(i){const d=get('decadeDiaries',[]);d.splice(i,1);set('decadeDiaries',d);renderDecadeDiary()}
+
+// ====== 命运改变法则 ======
+function renderFate(){const fi=get('fateInputs',{});if(fi.thinking)document.getElementById('fate-thinking').value=fi.thinking;if(fi.thinkingScore)document.getElementById('fate-thinking-score').value=fi.thinkingScore;if(fi.fixedCost)document.getElementById('fate-fixed-cost').value=fi.fixedCost;if(fi.debts)document.getElementById('fate-debts').value=fi.debts;if(fi.opportunities)document.getElementById('fate-opportunities').value=fi.opportunities;if(fi.talent)document.getElementById('fate-talent').value=fi.talent;calcFateCostRatio()}
+function saveFateInput(k,v){const fi=get('fateInputs',{});fi[k]=v;set('fateInputs',fi);if(k==='fixedCost')calcFateCostRatio()}
+function calcFateCostRatio(){const c=parseInt(document.getElementById('fate-fixed-cost').value)||0;const inc=get('monthlyIncome',0);if(c>0&&inc>0){const r=Math.round(c/inc*100);document.getElementById('fate-cost-ratio').value=r+'%';const a=document.getElementById('fate-cost-advice');if(r>50)a.innerHTML='<div class="tip-box tip-danger"><strong>&#x26a0; 危险：</strong>固定开支占比超过 50%，你的行动自由度极低。建议大幅削减开支。</div>';else if(r>40)a.innerHTML='<div class="tip-box"><strong>&#x26a0; 警告：</strong>固定开支占比偏高，需控制开支增长。</div>';else if(r>25)a.innerHTML='<div class="tip-box tip-success"><strong>&#x2714; 适中：</strong>开支比例合理，保留了一定的行动自由度。</div>';else a.innerHTML='<div class="tip-box tip-success"><strong>&#x2714; 优秀：</strong>开支比例很低，你有充足的资源用于修炼和投资。</div>'}}
+function generateFateDiagnosis(){const fi=get('fateInputs',{});const f=Object.keys(fi).filter(k=>fi[k]).length;if(f<3){showToast('请至少填写3项内容再生成诊断','warning');return}const inc=get('monthlyIncome',0);const c=parseInt(fi.fixedCost)||0;const th=fi.thinking||'未评估';const sc=parseInt(fi.thinkingScore)||0;let h='<div class="card" style="border-left:4px solid var(--purple);"><div class="card-title">&#x1f4cb; 命运改变诊断报告</div>';h+='<div class="fate-card"><h4>1. 思维模式评估</h4><p class="fate-desc">当前思维：<strong>'+th+'</strong>，自评得分：<strong>'+sc+'/10</strong></p>';if(sc<5)h+='<div class="tip-box tip-danger"><strong>建议：</strong>你的思维仍偏向语文思维，建议开始用具体数字量化每一个目标。</div>';else if(sc<8)h+='<div class="tip-box"><strong>建议：</strong>已进入过渡期，继续强化用数字说话的习惯。</div>';else h+='<div class="tip-box tip-success"><strong>优秀：</strong>你已具备数学思维，能用量化数据支撑决策。</div>';h+='</div>';if(c>0&&inc>0){const r=Math.round(c/inc*100);h+='<div class="fate-card"><h4>2. 开支自由度评估</h4><p class="fate-desc">月固定开支 '+c.toLocaleString()+' 元，占收入 '+r+'%</p>';if(r>40)h+='<div class="tip-box tip-danger"><strong>建议：</strong>你的行动范围被高开支锁死，降低固定开支是当务之急。</div>';else h+='<div class="tip-box tip-success"><strong>良好：</strong>开支比例可控，有足够自由度进行修炼和投资。</div>';h+='</div>'}h+='<div class="fate-card"><h4>3. 人生债清单</h4><p class="fate-desc">'+(fi.debts||'未填写')+'</p><div class="tip-box"><strong>提醒：</strong>这些「债」不会消失，制定还债计划，越早还清代价越小。</div></div>';h+='<div class="fate-card"><h4>4. 机会识别</h4><p class="fate-desc">'+(fi.opportunities||'未填写')+'</p><div class="tip-box"><strong>建议：</strong>为识别到的机会提前积累能力，机会只青睐有准备的人。</div></div>';h+='<div class="fate-card"><h4>5. 天赋方向</h4><p class="fate-desc">'+(fi.talent||'未填写')+'</p><div class="tip-box tip-success"><strong>建议：</strong>在做得顺手的事情上深耕，这是你的核心竞争力来源。</div></div>';h+='</div>';document.getElementById('fate-diagnosis').innerHTML=h;showToast('诊断报告已生成')}
+
+// ====== 时间管理 ======
+function renderTime(){const t=get('tasks',{main:[],side:[],mini:[]});renderTasks('main',t.main||[]);renderTasks('side',t.side||[]);renderTasks('mini',t.mini||[]);renderYearGoals();const mp=get('monthPlan',{});if(mp.main)document.getElementById('mp-main').value=mp.main;if(mp.cultivation)document.getElementById('mp-cultivation').value=mp.cultivation;if(mp.drop)document.getElementById('mp-drop').value=mp.drop}
+function renderTasks(tp,l){const c=document.getElementById('tasks-'+tp);const mx=tp==='main'?1:tp==='side'?3:5;const dn=l.filter(t=>t.done).length;document.getElementById('count-'+tp).textContent=dn+'/'+mx;c.innerHTML=l.map(t=>'<div class="task-item '+(t.done?'completed':'')+'"><div class="task-check '+(t.done?'done':'')+'" onclick="toggleTask(\''+tp+'\',\''+t.id+'\')"></div><div class="task-text">'+t.text+'</div><button class="btn btn-danger" onclick="deleteTask(\''+tp+'\',\''+t.id+'\')">&#x2715;</button></div>').join('')}
+function addTask(tp,tx){if(!tx.trim())return;const t=get('tasks',{main:[],side:[],mini:[]});t[tp]=t[tp]||[];t[tp].push({id:Date.now().toString(),text:tx.trim(),done:false});set('tasks',t);renderTasks(tp,t[tp])}
+function toggleTask(tp,id){const t=get('tasks',{main:[],side:[],mini:[]});const x=(t[tp]||[]).find(t=>t.id===id);if(x){x.done=!x.done;set('tasks',t);renderTasks(tp,t[tp])}}
+function deleteTask(tp,id){const t=get('tasks',{main:[],side:[],mini:[]});t[tp]=(t[tp]||[]).filter(x=>x.id!==id);set('tasks',t);renderTasks(tp,t[tp])}
+function renderYearGoals(){const g=get('yearGoals',[]);const l=document.getElementById('year-goals-list');if(!g.length){l.innerHTML='<div class="empty-state"><p>暂无年度战略目标</p></div>';return}l.innerHTML=g.map((x,i)=>'<div class="task-item"><div class="task-check '+(x.done?'done':'')+'" onclick="toggleYearGoal('+i+')"></div><div class="task-text" style="'+(x.done?'text-decoration:line-through;color:var(--text-tertiary)':'')+'">'+x.text+'</div><button class="btn btn-danger" onclick="deleteYearGoal('+i+')">&#x2715;</button></div>').join('')}
+function addYearGoal(){const tx=document.getElementById('new-year-goal').value.trim();if(!tx)return;const g=get('yearGoals',[]);g.push({text:tx,done:false});set('yearGoals',g);document.getElementById('new-year-goal').value='';renderYearGoals()}
+function toggleYearGoal(i){const g=get('yearGoals',[]);g[i].done=!g[i].done;set('yearGoals',g);renderYearGoals()}
+function deleteYearGoal(i){const g=get('yearGoals',[]);g.splice(i,1);set('yearGoals',g);renderYearGoals()}
+function saveMonthPlan(k,v){const mp=get('monthPlan',{});mp[k]=v;set('monthPlan',mp);showToast('月度计划已保存')}
+
+// ====== 知识修炼 ======
+function renderKnowledge(){const km=get('knowledgeMetrics',{});if(km.learn)document.getElementById('km-learn').value=km.learn;if(km.practice)document.getElementById('km-practice').value=km.practice;calcKnowledgeRatio();const it=get('knowledgeItems',[]);const l=document.getElementById('knowledge-list');if(!it.length)l.innerHTML='<div class="empty-state"><div class="icon">&#x1f4da;</div><p>暂无在修炼的知识项</p></div>';else l.innerHTML=it.map((k,i)=>'<div class="knowledge-card"><div class="knowledge-header"><h4>'+k.name+'</h4><div class="flex gap-8"><span class="tag '+(k.stage==='学'?'tag-blue':k.stage==='习'?'tag-green':'tag-purple')+'">'+k.stage+'</span><button class="btn btn-danger" onclick="deleteKnowledge('+i+')">&#x2715;</button></div></div><div class="flex gap-12 text-sm text-secondary"><span>已学: '+(k.learnHours||0)+'h</span><span>已练: '+(k.practiceHours||0)+'h</span><span>比例: 1:'+(k.practiceHours&&k.learnHours?Math.round(k.practiceHours/k.learnHours):0)+'</span></div><div class="mt-8"><label style="font-size:11px;">更新修炼时长</label><div class="flex gap-8"><input type="number" placeholder="学习h" style="width:100px;" value="'+(k.learnHours||'')+'" oninput="updateKnowledgeHours('+i+',\'learn\',this.value)"><input type="number" placeholder="练习h" style="width:100px;" value="'+(k.practiceHours||'')+'" oninput="updateKnowledgeHours('+i+',\'practice\',this.value)"></div></div></div>').join('');renderReadingList();const mz=get('mazeData',{});if(mz.benchmark)document.getElementById('maze-benchmark').value=mz.benchmark;if(mz.progress)document.getElementById('maze-progress').value=mz.progress;const bd=document.getElementById('nav-badge-knowledge');if(km.learn&&km.practice){const r=km.practice/km.learn;bd.style.display=r<6?'inline-block':'none'}}
+function addKnowledge(){const n=document.getElementById('new-knowledge').value.trim();if(!n)return;const it=get('knowledgeItems',[]);it.push({name:n,stage:'学',learnHours:0,practiceHours:0});set('knowledgeItems',it);document.getElementById('new-knowledge').value='';renderKnowledge()}
+function deleteKnowledge(i){const it=get('knowledgeItems',[]);it.splice(i,1);set('knowledgeItems',it);renderKnowledge()}
+function updateKnowledgeHours(i,f,v){const it=get('knowledgeItems',[]);it[i][f+'Hours']=parseInt(v)||0;if(it[i].practiceHours>0)it[i].stage='习';if(it[i].learnHours>0&&it[i].practiceHours>=it[i].learnHours*6)it[i].stage='通';set('knowledgeItems',it);renderKnowledge()}
+function calcKnowledgeRatio(){const l=parseInt(document.getElementById('km-learn').value)||0;const p=parseInt(document.getElementById('km-practice').value)||0;set('knowledgeMetrics',{learn:l,practice:p});if(l===0&&p===0){document.getElementById('km-ratio').textContent='--';document.getElementById('km-learn-bar').style.width='0%';document.getElementById('km-practice-bar').style.width='0%';document.getElementById('km-status').textContent='请输入数据';return}const r=l>0?(p/l).toFixed(1):'0';document.getElementById('km-ratio').textContent='1:'+r;const t=l+p;document.getElementById('km-learn-bar').style.width=(l/t*100)+'%';document.getElementById('km-practice-bar').style.width=(p/t*100)+'%';const rn=parseFloat(r);if(rn>=6)document.getElementById('km-status').innerHTML='<span style="color:var(--success);">&#x2714; 比例健康！学与习结合良好</span>';else if(rn>=3)document.getElementById('km-status').innerHTML='<span style="color:var(--accent);">&#x26a0; 练习不足，建议增加至 1:6 以上</span>';else document.getElementById('km-status').innerHTML='<span style="color:var(--danger);">&#x2716; 严重不足！你可能成为永远毕不了业的学习爱好者</span>'}
+function renderReadingList(){const b=get('readingList',[]);const l=document.getElementById('reading-list');if(!b.length){l.innerHTML='<div class="empty-state"><div class="icon">&#x1f4d6;</div><p>暂无读书追踪</p></div>';return}l.innerHTML=b.map((b,i)=>{const ds=Array.from({length:10},(_,j)=>'<div class="reading-dot '+(j<b.count?'done':'')+'" onclick="toggleReading('+i+','+j+')" title="第'+(j+1)+'遍">'+(j+1)+'</div>').join('');return '<div class="knowledge-card" style="border-left-color:var(--teal);"><div class="knowledge-header"><h4>'+b.name+'</h4><div class="flex gap-8"><span class="tag tag-gray">'+b.count+'/10 遍</span><button class="btn btn-danger" onclick="deleteReading('+i+')">&#x2715;</button></div></div><div class="reading-tracker">'+ds+'</div>'+(b.count>=10?'<div class="tip-box tip-success mt-8"><strong>&#x1f389; 恭喜！</strong>已完成十遍阅读，理论认知已夯实。</div>':'')+'</div>'}).join('')}
+function addReading(){const n=document.getElementById('new-reading').value.trim();if(!n)return;const b=get('readingList',[]);b.push({name:n,count:0});set('readingList',b);document.getElementById('new-reading').value='';renderReadingList()}
+function toggleReading(i,j){const b=get('readingList',[]);if(b[i].count===j+1)b[i].count=j;else b[i].count=j+1;set('readingList',b);renderReadingList()}
+function deleteReading(i){const b=get('readingList',[]);b.splice(i,1);set('readingList',b);renderReadingList()}
+function saveMaze(k,v){const m=get('mazeData',{});m[k]=v;set('mazeData',m)}
+
+// ====== 修炼路径 ======
+function renderPath(){selectPath(get('pathStage',1),false);const inc=get('monthlyIncome');if(inc){document.getElementById('path-current').value=inc;document.getElementById('fg-a').value=inc;calcPath();calcFirstGold()}}
+function selectPath(s,sv=true){if(sv)set('pathStage',s);document.querySelectorAll('.path-step').forEach(x=>x.classList.remove('active'));document.getElementById('path-s'+s).classList.add('active')}
+function calcPath(){const cu=parseInt(document.getElementById('path-current').value)||0;const h=parseInt(document.getElementById('path-hours').value)||8;const d=parseInt(document.getElementById('path-days').value)||22;if(cu<=0)return;const hr=Math.round(cu/d/h);document.getElementById('pd-hourly').textContent=hr;let st='--',nt='--',ad='';if(cu<10000){st='时间换钱';nt=Math.round(10000/d/h);ad='你处于<strong>第一阶段：时间换钱</strong>。当前时薪 '+hr+' 元/h，低于 56 元/h。修炼重点：<strong>执行力与基本功</strong>。不要急于学高阶知识，先打好基础。目标：时薪提升到 '+nt+' 元/h（月入过万）。';selectPath(1,false)}else if(cu<30000){st='技术换钱';nt=Math.round(30000/d/h);ad='你处于<strong>第二阶段：技术换钱</strong>。当前时薪 '+hr+' 元/h。修炼重点：<strong>专业知识的不可替代性</strong>。防止技术性失业。目标：时薪提升到 '+nt+' 元/h（月入3万）。';selectPath(2,false)}else{st='资源换钱';nt=Math.round(cu*2/d/h);ad='你处于<strong>第三阶段：资源换钱</strong>。当前时薪 '+hr+' 元/h。修炼重点：<strong>经营思维和被动收入管道</strong>。不要贪图「钱生钱」的快钱，基于已有资源稳健扩展。';selectPath(3,false)}document.getElementById('pd-stage').textContent=st;document.getElementById('pd-next').textContent=nt;document.getElementById('pd-advice').innerHTML='<strong>诊断建议：</strong>'+ad}
+function calcFirstGold(){const a=parseInt(document.getElementById('fg-a').value)||0;const p=parseInt(document.getElementById('fg-p').value)||0;const t=a+p;const pp=t>0?Math.round(p/t*100):0;const r=document.getElementById('fg-result');destroyChart('it');const ctx=document.getElementById('chart-income-type');if(ctx&&t>0){charts.it=new Chart(ctx,{type:'doughnut',data:{labels:['主动收入 ('+(100-pp)+'%)','被动收入 ('+pp+'%)'],datasets:[{data:[a,p],backgroundColor:['#3b82f6','#10b981'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11}}}},cutout:'60%'}})}if(pp===0)r.innerHTML='<div class="tip-box tip-danger"><strong>当前状态：</strong>完全依赖主动收入，一旦停止工作就没有收入来源。建议开始建立被动收入管道。</div>';else if(pp<20)r.innerHTML='<div class="tip-box"><strong>被动收入占比 '+pp+'%：</strong>刚开始建立被动收入管道，继续加油。目标是被动收入能覆盖基本生活费。</div>';else if(pp<50)r.innerHTML='<div class="tip-box tip-success"><strong>被动收入占比 '+pp+'%：</strong>初见成效。当被动收入能覆盖日常开销时，你就获得了选择的自由。</div>';else r.innerHTML='<div class="tip-box tip-success"><strong>被动收入占比 '+pp+'%：</strong>恭喜！已接近财务自由状态。可以花更多时间思考战略方向。</div>'}
+
+// ====== 试错资本 ======
+function renderTrial(){const tr=get('trials',[]);const t=tr.length;const l=tr.filter(x=>x.status==='learn').length;const s=tr.filter(x=>x.status==='success').length;const r=t>0?Math.round((l+s)/t*100):0;document.getElementById('trial-total').textContent=t;document.getElementById('trial-learn').textContent=l;document.getElementById('trial-success').textContent=s;document.getElementById('trial-rate').textContent=r+'%';const lt=document.getElementById('trial-list');if(!tr.length){lt.innerHTML='<div class="empty-state"><div class="icon">&#x1f9ea;</div><p>暂无试错记录</p><p class="text-xs">把每一次失败变成有价值的经验</p></div>';return}lt.innerHTML=tr.map((t,i)=>'<div class="trial-card"><div class="flex-between"><h4>'+t.field+'</h4><div class="flex gap-8"><span class="trial-status '+(t.status==='fail'?'trial-fail':t.status==='learn'?'trial-learn':'trial-success')+'">'+(t.status==='fail'?'失败':t.status==='learn'?'学习中':'已转化')+'</span><button class="btn btn-danger" onclick="deleteTrial('+i+')">&#x2715;</button></div></div><div class="text-sm mt-8"><strong>假设：</strong>'+t.hypothesis+'</div>'+(t.result?'<div class="text-sm mt-8"><strong>结果：</strong>'+t.result+'</div>':'')+(t.lesson?'<div class="text-sm mt-8"><strong>教训：</strong>'+t.lesson+'</div>':'')+'</div>').join('')}
+function showTrialModal(){['tr-field','tr-hypothesis','tr-result','tr-lesson'].forEach(id=>document.getElementById(id).value='');document.getElementById('tr-status').value='fail';document.getElementById('trial-modal').classList.add('show')}
+function saveTrial(){const tr=get('trials',[]);tr.unshift({field:document.getElementById('tr-field').value||'未命名',hypothesis:document.getElementById('tr-hypothesis').value,result:document.getElementById('tr-result').value,lesson:document.getElementById('tr-lesson').value,status:document.getElementById('tr-status').value});set('trials',tr);closeModal();showToast('试错记录已保存');renderTrial()}
+function deleteTrial(i){const tr=get('trials',[]);tr.splice(i,1);set('trials',tr);renderTrial()}
+
+// ====== 情报系统 ======
+const intelQ=['你想要什么样的数据？分析出来是什么样的结果？呈现出什么样的报告？','你目前已经拥有什么样的信息？得到过什么样的报告？','这些报告中的数据和信息，对你的人生决策有什么借鉴意义和参考价值？','你如何应用你的这套「信息系统」？是让你的人生越过越好还是越过越糟？','和你兴趣爱好相关的信息，占据你多少时间和精力？','和你收入相关的专业知识，在你的「情报系统」中占据多少比例？','和你收入相关的人际沟通中涉及的人员，在你的「情报系统」中占多少？','如果让你当前收入提升 20%~30%，你的「情报系统」中是否有支持信息和行动方案？','如果让你当前收入提升 50%~100%，你的「情报系统」中是否有支持信息和行动方案？','知道了某些信息之后，你的下一步决策行动是什么？会带来多大的收益？'];
+function renderIntel(){const an=get('intelAnswers',{});document.getElementById('intel-questions').innerHTML=intelQ.map((q,i)=>'<div class="intel-question"><div class="q"><span class="q-num">'+(i+1)+'</span><span>'+q+'</span></div><textarea placeholder="认真思考并回答..." rows="2" oninput="saveIntelAnswer('+i+',this.value)">'+(an[i]||'')+'</textarea></div>').join('');const ip=get('infoProfessional'),ie=get('infoEntertainment');if(ip)document.getElementById('info-professional').value=ip;if(ie)document.getElementById('info-entertainment').value=ie;calcInfoRatio();renderKnowledgeMap()}
+function saveIntelAnswer(i,v){const an=get('intelAnswers',{});an[i]=v;set('intelAnswers',an)}
+function saveIntel(){showToast('情报审查已保存')}
+function calcInfoRatio(){const pr=parseInt(document.getElementById('info-professional').value)||0;const en=parseInt(document.getElementById('info-entertainment').value)||0;set('infoProfessional',pr);set('infoEntertainment',en);const r=document.getElementById('info-result');const t=pr+en;if(t===0){r.innerHTML='';return}const pp=Math.round(pr/t*100);let h='<div class="ratio-bar" style="height:30px;"><div class="ratio-learn" style="width:'+pp+'%">专业知识 '+pp+'%</div><div class="ratio-practice" style="width:'+(100-pp)+'%;background:var(--danger);">娱乐 '+(100-pp)+'%</div></div>';if(pp<30)h+='<div class="tip-box tip-danger mt-8"><strong>&#x26a0; 信息茧房警告：</strong>你的信息摄入严重偏向娱乐。你的思维层次会被信息源锁死，建议大幅增加专业知识的摄入比例。</div>';else if(pp<60)h+='<div class="tip-box mt-8"><strong>&#x26a0; 需改善：</strong>专业知识占比仍有提升空间，建议将比例提升到 60% 以上。</div>';else h+='<div class="tip-box tip-success mt-8"><strong>&#x2714; 良好：</strong>你的信息摄入以专业知识为主，有助于持续成长。</div>';r.innerHTML=h}
+function renderKnowledgeMap(){const it=get('knowledgeMap',[]);const l=document.getElementById('knowledge-map-list');if(!it.length){l.innerHTML='<div class="empty-state"><p>暂无专业知识地图项</p></div>';return}l.innerHTML=it.map((x,i)=>'<div class="task-item"><div class="task-check" style="border-color:var(--primary);background:var(--primary-light);"></div><div class="task-text">'+x+'</div><button class="btn btn-danger" onclick="deleteMapItem('+i+')">&#x2715;</button></div>').join('')}
+function addMapItem(){const tx=document.getElementById('new-map-item').value.trim();if(!tx)return;const it=get('knowledgeMap',[]);it.push(tx);set('knowledgeMap',it);document.getElementById('new-map-item').value='';renderKnowledgeMap()}
+function deleteMapItem(i){const it=get('knowledgeMap',[]);it.splice(i,1);set('knowledgeMap',it);renderKnowledgeMap()}
+
+// ====== 复盘中心 ======
+const checklistItems=['我已经计算了自己的时间成本（时薪）','我已建立 3~6 个月的应急储备金','我的收入按 10/20/30/40 进行了分配','我有明确的 3 年「北极星」目标','我有 10 年规划蓝图','我每天用 1-3-5 工作法安排任务','我的学:习比例达到 1:6 以上','我定期复盘（日/周/月）','我的信息摄入中专业知识占比 > 60%','我知道自己当前处于哪个修炼阶段','我有被动收入管道（哪怕很少）','我用投资回报率思维来评估每一项投入'];
+function renderReview(){renderReviewList();renderChecklist();renderGrowthChart()}
+let currentReviewType=null;
+function startReview(tp){currentReviewType=tp;const tt={daily:'日复盘',weekly:'周复盘',monthly:'月复盘'};const qs={daily:['今天的主线任务完成了吗？','今天学到了什么？有什么收获？','今天有什么做得不好的地方？明天怎么改进？','今天的时间花在哪里了？有没有浪费？'],weekly:['本周的计划完成了多少？','本周在修炼上投入了多少小时？','本周最大的收获是什么？','下周需要调整什么？'],monthly:['月度目标达成率是多少？','收入是否有提升？修炼阶段是否有变化？','本月在学:习比例上是否达标？','下月的核心战略是什么？']};document.getElementById('review-modal-title').textContent=tt[tp];document.getElementById('review-modal-content').innerHTML=qs[tp].map((q,i)=>'<div><label>'+q+'</label><textarea rows="2" data-q="'+i+'" placeholder="认真思考..."></textarea></div>').join('');document.getElementById('review-modal').classList.add('show')}
+function saveReviewRecord(){const rv=get('reviews',[]);const an={};document.querySelectorAll('#review-modal-content textarea').forEach(t=>{an[t.dataset.q]=t.value});rv.unshift({type:currentReviewType,date:new Date().toISOString().split('T')[0],answers:an});set('reviews',rv);closeModal();showToast('复盘已保存');renderReviewList();renderGrowthChart()}
+function renderReviewList(){const rv=get('reviews',[]);const l=document.getElementById('review-list');if(!rv.length){l.innerHTML='<div class="empty-state"><div class="icon">&#x1f501;</div><p>暂无复盘记录</p></div>';return}const tm={daily:'日复盘',weekly:'周复盘',monthly:'月复盘'};const tc={daily:'tag-blue',weekly:'tag-orange',monthly:'tag-green'};l.innerHTML=rv.slice(0,10).map(r=>'<div class="knowledge-card"><div class="knowledge-header"><h4>'+tm[r.type]+' - '+r.date+'</h4><span class="tag '+tc[r.type]+'">'+tm[r.type]+'</span></div>'+Object.entries(r.answers).map(([k,v])=>v?'<p class="text-sm mb-8">'+v+'</p>':'').join('')+'</div>').join('')}
+function renderChecklist(){const ck=get('checklist',[]);const dl=document.getElementById('checklist-done');const tl=document.getElementById('checklist-todo');const dn=checklistItems.filter((_,i)=>ck.includes(i));const td=checklistItems.filter((_,i)=>!ck.includes(i));dl.innerHTML=dn.length?dn.map(x=>{const idx=checklistItems.indexOf(x);return'<li class="task-item completed"><div class="task-check done" onclick="toggleCheck('+idx+')"></div><div class="task-text">'+x+'</div></li>'}).join(''):'<li class="text-muted text-sm">暂无</li>';tl.innerHTML=td.length?td.map(x=>{const idx=checklistItems.indexOf(x);return'<li class="task-item"><div class="task-check" onclick="toggleCheck('+idx+')"></div><div class="task-text">'+x+'</div></li>'}).join(''):'<li class="text-muted text-sm">全部完成！</li>'}
+function toggleCheck(i){const ck=get('checklist',[]);const idx=ck.indexOf(i);if(idx>=0)ck.splice(idx,1);else ck.push(i);set('checklist',ck);renderChecklist()}
+function renderGrowthChart(){destroyChart('gc');const ctx=document.getElementById('chart-growth');if(!ctx)return;const rv=get('reviews',[]);if(rv.length<2)return;const labels=rv.reverse().map(r=>r.date);const data=rv.map((_,i)=>i+1);charts.gc=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'复盘次数',data,borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,0.1)',fill:true,tension:0.3,pointRadius:4,pointBackgroundColor:'#2563eb'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}})}
+
+function closeModal(){document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('show'))}
+
+// ====== 初始化 ======
+loadStore();
+renderPage('dashboard');
+renderDashboard();
+checkAutoBackup();
+updateBackupInfo();
+document.getElementById('bk-interval').addEventListener('change',saveBackupSettings);
+// PWA Service Worker 注册
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').then(()=>console.log('SW registered')).catch(e=>console.log('SW failed:',e))})}
+</script>
+</body>
+</html>
+
