@@ -143,6 +143,43 @@ textarea{resize:vertical;min-height:70px}
 .insight-tag{font-size:10px;padding:2px 8px;border-radius:4px;background:var(--purple-light);color:var(--purple-dark);cursor:pointer;transition:var(--transition)}
 .insight-tag:hover{background:var(--purple);color:#fff}
 .insight-input-area{background:var(--surface);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:14px}
+.sim-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:16px}
+.sim-tab{padding:10px 18px;font-size:13px;font-weight:500;color:var(--text-tertiary);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:var(--transition);white-space:nowrap}
+.sim-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+.sim-tab:hover{color:var(--text-secondary)}
+.scenario-card{background:var(--surface);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+.scenario-param{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.scenario-param label{font-size:12px;font-weight:600;min-width:130px;flex-shrink:0}
+.scenario-param input[type=range]{flex:1;accent-color:var(--primary)}
+.scenario-param .val{font-size:13px;font-weight:700;min-width:80px;text-align:right;color:var(--primary)}
+.scenario-result{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:16px}
+.scenario-result-item{background:var(--bg-tertiary);border-radius:8px;padding:12px;text-align:center}
+.scenario-result-item .rv{font-size:18px;font-weight:700;color:var(--primary)}
+.scenario-result-item .rv.good{color:var(--success)}.scenario-result-item .rv.bad{color:var(--danger)}
+.scenario-result-item .lb{font-size:11px;color:var(--text-tertiary);margin-top:4px}
+.scenario-result-item .delta{font-size:11px;font-weight:600;margin-top:2px}
+.scenario-compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:14px}
+.path-compare-card{background:var(--surface);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);border-top:4px solid var(--primary)}
+.path-compare-card.opt-a{border-top-color:var(--danger)}
+.path-compare-card.opt-b{border-top-color:var(--accent)}
+.path-compare-card.opt-c{border-top-color:var(--success)}
+.path-compare-card h4{font-size:14px;font-weight:700;margin-bottom:8px}
+.path-compare-card .pc-metric{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)}
+.path-compare-card .pc-metric:last-child{border-bottom:none}
+.path-compare-card .pc-metric .pv{font-weight:700}
+.path-compare-card .pc-tag{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;margin-bottom:8px;display:inline-block}
+.vuln-alert{background:var(--surface);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:10px;border-left:4px solid;display:flex;gap:12px;align-items:flex-start}
+.vuln-alert.critical{border-left-color:var(--danger);background:var(--danger-light)}
+.vuln-alert.warning{border-left-color:var(--accent);background:var(--accent-light)}
+.vuln-alert.ok{border-left-color:var(--success);background:var(--success-light)}
+.vuln-alert .vuln-icon{font-size:24px;flex-shrink:0}
+.vuln-alert .vuln-body h4{font-size:14px;font-weight:700;margin-bottom:4px}
+.vuln-alert .vuln-body p{font-size:12px;line-height:1.5}
+.vuln-alert .vuln-body .vuln-action{margin-top:6px;font-size:11px;color:var(--primary);cursor:pointer;font-weight:600}
+.vuln-score{display:flex;align-items:center;gap:16px;background:var(--surface);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+.vuln-score-circle{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;flex-shrink:0}
+.vuln-score-label{font-size:13px;font-weight:600}
+.vuln-score-detail{font-size:11px;color:var(--text-tertiary);margin-top:2px}
 </style>
 </head>
 <body>
@@ -169,6 +206,8 @@ textarea{resize:vertical;min-height:70px}
 <div class="nav-item" data-page="principles"><span class="nav-icon">&#x1f4a1;</span><span>核心原则</span></div>
 <div class="nav-section-label">成长</div>
 <div class="nav-item" data-page="growth"><span class="nav-icon">&#x1f331;</span><span>成长档案</span></div>
+<div class="nav-section-label">推演</div>
+<div class="nav-item" data-page="simulation"><span class="nav-icon">&#x1f9ed;</span><span>战略推演</span></div>
 <div class="nav-section-label">AI助手</div>
 <div class="nav-item" data-page="aichat"><span class="nav-icon">&#x1f4ac;</span><span>AI对话</span></div>
 </nav>
@@ -461,6 +500,14 @@ growth:`<div class="page-header"><h2>成长档案 <span class="badge badge-purpl
 <div class="growth-tab" onclick="switchGrowthTab('insights')">&#x1f4a1; 洞察积累</div>
 </div>
 <div id="growth-content"></div>`
+},
+simulation:`<div class="page-header"><h2>战略推演 <span class="badge badge-orange">沙盘</span></h2><p>模拟未来场景、对比多条路径、检测系统性脆弱点</p></div>
+<div class="sim-tabs">
+<div class="sim-tab active" onclick="switchSimTab('scenario')">&#x1f52c; 情景模拟</div>
+<div class="sim-tab" onclick="switchSimTab('paths')">&#x1f6c8; 路径对比</div>
+<div class="sim-tab" onclick="switchSimTab('vuln')">&#x1f6e1; 脆弱性检测</div>
+</div>
+<div id="sim-content"></div>`
 };
 
 // ====== 渲染页面到主内容区 ======
@@ -504,7 +551,7 @@ onPageEnter(item.dataset.page);
 })});
 
 function onPageEnter(page){switch(page){
-case'dashboard':renderDashboard();break;case'lifeclock':renderLifeClock();break;case'resource':renderResource();break;case'decade':renderDecade();break;case'fate':renderFate();break;case'time':renderTime();break;case'knowledge':renderKnowledge();break;case'path':renderPath();break;case'trial':renderTrial();break;case'intel':renderIntel();break;case'review':renderReview();break;case'growth':renderGrowth();break;case'aichat':renderAIChat();break}}
+case'dashboard':renderDashboard();break;case'lifeclock':renderLifeClock();break;case'resource':renderResource();break;case'decade':renderDecade();break;case'fate':renderFate();break;case'time':renderTime();break;case'knowledge':renderKnowledge();break;case'path':renderPath();break;case'trial':renderTrial();break;case'intel':renderIntel();break;case'review':renderReview();break;case'growth':renderGrowth();break;case'simulation':renderSimulation();break;case'aichat':renderAIChat();break}}
 
 const charts={};function destroyChart(k){if(charts[k]){charts[k].destroy();delete charts[k]}}
 
@@ -577,6 +624,9 @@ if(iScore<5)alerts.push({nav:'intel',msg:'情报系统仅回答'+aCount+'/10题�
 // 10 复盘
 const rv=get('reviews',[]);const ck=get('checklist',[]);const rScore=Math.min(Math.round(rv.length*0.5+ck.length*0.8),10);dims.push({label:'复盘检查',score:rScore,nav:'review',tip:rv.length+'次复盘，'+ck.length+'/12项检查'});
 if(rScore<4)alerts.push({nav:'review',msg:'复盘和检查清单完成度不足，建议定期复盘'});
+// 11 战略推演
+const simPaths=get('simPaths',[]);const simScore=Math.min(Math.round(simPaths.length*5),10);dims.push({label:'战略推演',score:simScore,nav:'simulation',tip:simPaths.length>0?simPaths.length+'条路径已对比':'未创建推演路径'});
+if(simScore===0)alerts.push({nav:'simulation',msg:'尚未使用战略推演，建议尝试情景模拟和路径对比'});
 // 渲染雷达图
 destroyChart('sr');const ctx=document.getElementById('chart-status-radar');if(ctx){charts.sr=new Chart(ctx,{type:'radar',data:{labels:dims.map(d=>d.label),datasets:[{label:'完成度',data:dims.map(d=>d.score),backgroundColor:'rgba(37,99,235,0.15)',borderColor:'#2563eb',borderWidth:2,pointBackgroundColor:'#2563eb',pointRadius:4,pointHoverRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{min:0,max:10,ticks:{stepSize:2,font:{size:9}},pointLabels:{font:{size:10}},grid:{color:'#e2e8f0'},angleLines:{color:'#e2e8f0'}}}}})}
 // 渲染文字摘要
@@ -741,6 +791,9 @@ const dc=get('decisions',[]);
 if(dc.length){const pending=dc.filter(x=>x.status==='pending').length;d.decisions=dc.length+'条决策记录（'+pending+'条待验证）。最近：'+dc.slice(0,3).map(x=>x.title+'（'+x.status+'）'+(x.actual?'实际:'+x.actual:'')).join('; ')}
 const ins=get('insights',[]);
 if(ins.length)d.insights=ins.length+'条洞察记录。最近：'+ins.slice(0,5).map(x=>x.content+(x.tags&&x.tags.length?'['+x.tags.join(',')+']':'')).join(' | ');
+// 12. 战略推演
+const simPaths=get('simPaths',[]);
+if(simPaths.length)d.simPaths=simPaths.length+'条推演路径：'+simPaths.map(p=>p.name+'('+p.type+',起始'+p.income+'元)').join('; ');
 return d;
 }
 function buildAIPrompt(d,style){
@@ -1024,6 +1077,7 @@ function buildChatDataContext(d){
   if(d.growthTrend)lines.push('成长趋势：'+d.growthTrend);
   if(d.decisions)lines.push('决策档案：'+d.decisions);
   if(d.insights)lines.push('洞察记录：'+d.insights);
+  if(d.simPaths)lines.push('推演路径：'+d.simPaths);
   return lines.length?lines.join('\n'):'（用户尚未填写任何数据，请引导用户先去总览仪表盘填写基本信息）';
 }
 function clearChatHistory(){
@@ -1239,6 +1293,295 @@ function renderInsightsList(query){
     var tagsHTML=(x.tags||[]).map(function(t){return '<span class="insight-tag" onclick="filterByTag(\''+t.replace(/'/g,'')+'\')">'+t+'</span>'}).join('');
     return '<div class="insight-card"><div class="flex-between"><div class="text-sm" style="flex:1;line-height:1.5">'+x.content+'</div><button class="btn-mini" onclick="deleteInsight(\''+x.id+'\')">&#x2715;</button></div>'+(tagsHTML?'<div class="insight-tags">'+tagsHTML+'</div>':'')+'<div class="text-xs text-muted mt-4">'+x.date+'</div></div>'
   }).join('')
+}
+
+// ====== 战略推演（推演层）======
+function renderSimulation(){switchSimTab('scenario')}
+function switchSimTab(tab){
+  document.querySelectorAll('.sim-tab').forEach(function(t,i){
+    t.classList.toggle('active',['scenario','paths','vuln'][i]===tab);
+  });
+  var c=document.getElementById('sim-content');if(!c)return;
+  if(tab==='scenario'){c.innerHTML=scenarioTabHTML();runScenario()}
+  else if(tab==='paths'){c.innerHTML=pathsTabHTML();renderPathsList()}
+  else if(tab==='vuln'){c.innerHTML=vulnTabHTML();runVulnCheck()}
+}
+
+// ---- 情景模拟器 ----
+function scenarioTabHTML(){
+  var inc=get('monthlyIncome',0);var ef=get('efSaved',0);var fc=get('fateInputs',{}).fixedCost||0;
+  var km=get('knowledgeMetrics',{});
+  var incDef=inc||10000;var fcDef=fc||Math.round(incDef*0.4);
+  return '<div class="scenario-card">'+
+    '<h3 style="font-size:15px;margin-bottom:14px">&#x1f52c; What-if 情景模拟器</h3>'+
+    '<p class="text-sm text-secondary mb-16">拖动滑块改变变量，实时推演对财务、修炼、时间的影响</p>'+
+    '<div class="scenario-param"><label>&#x1f4b0; 月收入调整</label>'+
+    '<input type="range" id="sc-income" min="0" max="200" value="100" step="5" oninput="updateScLabel(this,\'sc-income-val\',\''+incDef+'\');runScenario()">'+
+    '<span class="val" id="sc-income-val">'+incDef.toLocaleString()+'</span></div>'+
+    '<div class="scenario-param"><label>&#x1f3e7; 月固定开支占比</label>'+
+    '<input type="range" id="sc-fc-ratio" min="10" max="90" value="'+Math.round(fcDef/Math.max(incDef,1)*100)+'" step="5" oninput="updateScLabel(this,\'sc-fc-val\',\'\',\'%\');runScenario()">'+
+    '<span class="val" id="sc-fc-val">'+Math.round(fcDef/Math.max(incDef,1)*100)+'%</span></div>'+
+    '<div class="scenario-param"><label>&#x1f4b3; 每月额外储蓄</label>'+
+    '<input type="range" id="sc-save" min="0" max="10000" value="2000" step="500" oninput="updateScLabel(this,\'sc-save-val\',\'\',\'\u5143\');runScenario()">'+
+    '<span class="val" id="sc-save-val">2000元</span></div>'+
+    '<div class="scenario-param"><label>&#x1f4da; 学练比目标</label>'+
+    '<input type="range" id="sc-ratio" min="1" max="15" value="6" step="1" oninput="updateScLabel(this,\'sc-ratio-val\',\'\',\':1\');runScenario()">'+
+    '<span class="val" id="sc-ratio-val">6:1</span></div>'+
+    '<div class="scenario-param"><label>&#x1f4c5; 推演月数</label>'+
+    '<input type="range" id="sc-months" min="3" max="60" value="12" step="3" oninput="updateScLabel(this,\'sc-months-val\',\'\',\'\u6708\');runScenario()">'+
+    '<span class="val" id="sc-months-val">12月</span></div>'+
+    '<div id="sc-result"></div></div>'
+}
+function updateScLabel(input,labelId,base,suffix){
+  var el=document.getElementById(labelId);if(!el)return;var v=parseInt(input.value);
+  if(labelId==='sc-income-val'){
+    var inc=get('monthlyIncome',0)||10000;var real=Math.round(inc*v/100);
+    el.textContent=real.toLocaleString()+'元'+(v!==100?' ('+(v>100?'+':'')+(v-100)+'%)':'')
+  }else{
+    el.textContent=v+(suffix||'')
+  }
+}
+function runScenario(){
+  var inc0=get('monthlyIncome',0)||10000;
+  var incPct=parseInt(document.getElementById('sc-income').value);
+  var inc=Math.round(inc0*incPct/100);
+  var fcRatio=parseInt(document.getElementById('sc-fc-ratio').value);
+  var fc=Math.round(inc*fcRatio/100);
+  var save=parseInt(document.getElementById('sc-save').value);
+  var ratio=parseInt(document.getElementById('sc-ratio').value);
+  var months=parseInt(document.getElementById('sc-months').value);
+  var ef0=get('efSaved',0);
+  // 计算
+  var monthlySurplus=inc-fc;
+  var monthlySaveTotal=Math.max(0,monthlySurplus)+save;
+  var efAfter=ef0+monthlySaveTotal*months;
+  var efMonthsCover=fc>0?Math.round(efAfter/fc*10)/10:0;
+  var efTarget=Math.round(fc*6);
+  var efTargetMonths=monthlySaveTotal>0?Math.ceil((Math.max(0,efTarget-ef0))/monthlySaveTotal):999;
+  // 学练比推演
+  var km=get('knowledgeMetrics',{});
+  var curLearn=km.learn||0;var curPractice=km.practice||0;
+  var learnHPerMonth=curLearn;var practiceHNeeded=Math.round(learnHPerMonth*ratio);
+  var totalLearnNeeded=learnHPerMonth*months;
+  var totalPracticeNeeded=practiceHNeeded*months;
+  // 修炼阶段推演
+  var ps=get('pathStage',1);
+  var stageName=['时间换钱','技术换钱','资源换钱'][ps-1]||'未设定';
+  var nextStage=ps<3?['技术换钱','资源换钱'][ps-1]:'已最高';
+  var incomeGrowthRate=ps===1?0.15:ps===2?0.20:0.10;
+  var projectedIncome=Math.round(inc*Math.pow(1+incomeGrowthRate,months/12));
+  // 资源配置四分法
+  var seed=Math.round(inc*0.1);var insurance=Math.round(inc*0.05);var invest=Math.round(inc*0.1);var living=Math.round(inc*0.6);
+  var r=document.getElementById('sc-result');if(!r)return;
+  r.innerHTML='<h4 style="font-size:13px;margin:16px 0 10px;color:var(--text-secondary)">&#x1f4ca; 推演结果（'+months+'个月后）</h4>'+
+    '<div class="scenario-result">'+
+    '<div class="scenario-result-item"><div class="rv '+(efMonthsCover>=6?'good':efMonthsCover>=3?'':'bad')+'">'+efMonthsCover+'</div><div class="lb">应急金覆盖月数</div><div class="delta '+(ef0>0&&efAfter>ef0?'delta-up':'delta-down')+'">'+(ef0>0?'从'+(fc>0?(ef0/fc).toFixed(1):0)+'月':'')+'</div></div>'+
+    '<div class="scenario-result-item"><div class="rv">'+efAfter.toLocaleString()+'</div><div class="lb">应急金总额(元)</div><div class="delta '+(efAfter>ef0?'delta-up':'delta-flat')+'">+('+monthlySaveTotal*months).toLocaleString()+'</div></div>'+
+    '<div class="scenario-result-item"><div class="rv '+(efTargetMonths<=12?'good':efTargetMonths<=24?'':'bad')+'">'+(efTargetMonths>=999?'∞':efTargetMonths+'月')+'</div><div class="lb">达6个月储备目标</div><div class="lb">目标:'+efTarget.toLocaleString()+'元</div></div>'+
+    '<div class="scenario-result-item"><div class="rv '+(monthlySurplus>0?'good':'bad')+'">'+monthlySurplus.toLocaleString()+'</div><div class="lb">月净盈余(元)</div></div>'+
+    '<div class="scenario-result-item"><div class="rv">'+practiceHNeeded+'h</div><div class="lb">月需练习时长</div><div class="lb">比例'+ratio+':1</div></div>'+
+    '<div class="scenario-result-item"><div class="rv">'+totalPracticeNeeded+'h</div><div class="lb">'+months+'月总练习量</div><div class="lb">当前:'+curPractice+'h</div></div>'+
+    '<div class="scenario-result-item"><div class="rv good">'+projectedIncome.toLocaleString()+'</div><div class="lb">预期月收入(元)</div><div class="lb">从'+inc.toLocaleString()+'</div></div>'+
+    '<div class="scenario-result-item"><div class="rv">'+(incPct>100?'':incPct<100?'':'')+'</div><div class="lb">收入调整</div><div class="lb">'+(incPct>100?'+':'')+(incPct-100)+'%</div></div>'+
+    '</div>'+
+    (monthlySurplus<0?'<div class="tip-box tip-danger mt-16"><strong>&#x26a0; 警告：</strong>当前设置下月净盈余为负！收入无法覆盖开支，需削减开支或增加收入。</div>':
+    efMonthsCover<3?'<div class="tip-box tip-danger mt-16"><strong>&#x26a0; 应急金不足：</strong>仅覆盖'+efMonthsCover+'个月生活费，建议至少6个月。按当前储蓄速度，还需'+efTargetMonths+'个月达标。</div>':
+    efMonthsCover<6?'<div class="tip-box mt-16"><strong>&#x1f4c8; 接近目标：</strong>应急金覆盖'+efMonthsCover+'个月，还需'+efTargetMonths+'个月达标6个月目标。</div>':
+    ratio<6?'<div class="tip-box mt-16"><strong>&#x26a0; 学练比偏低：</strong>当前目标'+ratio+':1低于书中建议的1:6~1:10，可能导致"学习爱好者"陷阱。</div>':
+    '<div class="tip-box tip-success mt-16"><strong>&#x2705; 场景健康：</strong>应急金充足('+efMonthsCover+'个月)，学练比合理('+ratio+':1)，'+months+'个月后预期月收入可达'+projectedIncome.toLocaleString()+'元。</div>')+
+    '<div class="mt-12 text-xs text-muted">注：收入增长基于修炼阶段"'+stageName+'"的估算增长率'+Math.round(incomeGrowthRate*100)+'%/年，实际取决于执行力和市场因素</div>';
+}
+
+// ---- 路径对比 ----
+function pathsTabHTML(){
+  return '<div class="scenario-card">'+
+    '<h3 style="font-size:15px;margin-bottom:10px">&#x1f6c8; 多路径对比分析</h3>'+
+    '<p class="text-sm text-secondary mb-16">设定2-3条人生路径，并排对比关键指标的5年差异</p>'+
+    '<div class="flex gap-8 mb-16 flex-wrap">'+
+    '<input id="pt-name" placeholder="路径名称（如：保守路线）" style="flex:1;min-width:120px;border:1px solid var(--border-strong);border-radius:8px;padding:8px 12px;font-size:13px">'+
+    '<select id="pt-type" style="border:1px solid var(--border-strong);border-radius:8px;padding:8px 12px;font-size:13px">'+
+    '<option value="保守">保守路线</option><option value="均衡">均衡路线</option><option value="激进">激进路线</option></select>'+
+    '<button class="btn btn-primary" onclick="savePath()">&#x2713; 添加路径</button></div>'+
+    '<div class="scenario-param"><label>&#x1f4b0; 起始月收入</label><input type="number" id="pt-income" value="'+(get('monthlyIncome',0)||10000)+'" style="width:120px;border:1px solid var(--border-strong);border-radius:8px;padding:8px;font-size:13px"><span class="val">元</span></div>'+
+    '<div class="scenario-param"><label>&#x1f4b3; 月固定开支</label><input type="number" id="pt-cost" value="'+(get('fateInputs',{}).fixedCost||0)+'" style="width:120px;border:1px solid var(--border-strong);border-radius:8px;padding:8px;font-size:13px"><span class="val">元</span></div>'+
+    '<div class="scenario-param"><label>&#x1f4da; 月修炼时长</label><input type="number" id="pt-hours" value="40" style="width:120px;border:1px solid var(--border-strong);border-radius:8px;padding:8px;font-size:13px"><span class="val">h</span></div>'+
+    '<div class="scenario-param"><label>&#x1f9ea; 月试错投入</label><input type="number" id="pt-trial" value="500" style="width:120px;border:1px solid var(--border-strong);border-radius:8px;padding:8px;font-size:13px"><span class="val">元</span></div>'+
+    '</div>'+
+    '<div id="paths-list"></div>'
+}
+function savePath(){
+  var name=document.getElementById('pt-name').value.trim();if(!name)name=document.getElementById('pt-type').value;
+  var income=parseInt(document.getElementById('pt-income').value)||0;
+  var cost=parseInt(document.getElementById('pt-cost').value)||0;
+  var hours=parseInt(document.getElementById('pt-hours').value)||0;
+  var trial=parseInt(document.getElementById('pt-trial').value)||0;
+  var type=document.getElementById('pt-type').value;
+  var paths=get('simPaths',[]);
+  if(paths.length>=3){showToast('最多对比3条路径，请先删除旧的','warning');return}
+  paths.push({id:Date.now().toString(),name:name,type:type,income:income,cost:cost,hours:hours,trial:trial});
+  set('simPaths',paths);document.getElementById('pt-name').value='';
+  renderPathsList();showToast('路径已添加')
+}
+function deletePath(id){
+  set('simPaths',get('simPaths',[]).filter(function(x){return x.id!==id}));renderPathsList();showToast('已删除')
+}
+function renderPathsList(){
+  var paths=get('simPaths',[]);var c=document.getElementById('paths-list');if(!c)return;
+  if(!paths.length){c.innerHTML='<div class="empty-state"><div class="icon">&#x1f6c8;</div><p>暂无路径</p><p class="text-xs">添加2-3条路径进行对比分析</p></div>';return}
+  var years=5;
+  var typeClass={保守:'opt-a',均衡:'opt-b',激进:'opt-c'};
+  var typeTag={保守:'tag-red',均衡:'tag-orange',激进:'tag-green'};
+  var html='<div class="scenario-compare">';
+  paths.forEach(function(p){
+    var monthlySave=Math.max(0,p.income-p.cost)-p.trial;
+    var ef5=monthlySave*12*years;
+    var growthRate=p.type==='保守'?0.08:p.type==='均衡'?0.15:0.25;
+    var income5=Math.round(p.income*Math.pow(1+growthRate,years));
+    var totalHours=p.hours*12*years;
+    var stageNow=p.income<10000?'时间换钱':p.income<30000?'技术换钱':'资源换钱';
+    var stage5=income5<10000?'时间换钱':income5<30000?'技术换钱':'资源换钱';
+    var riskLevel=p.type==='保守'?'低风险':p.type==='均衡'?'中风险':'高风险';
+    var riskColor=p.type==='保守'?'var(--success)':p.type==='均衡'?'var(--accent)':'var(--danger)';
+    html+='<div class="path-compare-card '+(typeClass[p.type]||'')+'">'+
+      '<div class="flex-between"><h4>'+p.name+'</h4><button class="btn-mini" onclick="deletePath(\''+p.id+'\')">&#x2715;</button></div>'+
+      '<span class="pc-tag '+typeTag[p.type]+'">'+p.type+' · '+riskLevel+'</span>'+
+      '<div class="pc-metric"><span>起始月收入</span><span class="pv">'+p.income.toLocaleString()+'元</span></div>'+
+      '<div class="pc-metric"><span>5年后月收入</span><span class="pv" style="color:var(--success)">'+income5.toLocaleString()+'元</span></div>'+
+      '<div class="pc-metric"><span>月净储蓄</span><span class="pv '+(monthlySave>0?'':'style="color:var(--danger)"')+'">'+monthlySave.toLocaleString()+'元</span></div>'+
+      '<div class="pc-metric"><span>5年累计储蓄</span><span class="pv">'+ef5.toLocaleString()+'元</span></div>'+
+      '<div class="pc-metric"><span>5年修炼总时长</span><span class="pv">'+totalHours.toLocaleString()+'h</span></div>'+
+      '<div class="pc-metric"><span>修炼阶段变化</span><span class="pv">'+stageNow+'→'+stage5+'</span></div>'+
+      '<div class="pc-metric"><span>收入增长率</span><span class="pv">'+Math.round(growthRate*100)+'%/年</span></div>'+
+      '<div class="pc-metric"><span>风险等级</span><span class="pv" style="color:'+riskColor+'">'+riskLevel+'</span></div>'+
+      '</div>';
+  });
+  html+='</div>';
+  // 对比分析
+  if(paths.length>=2){
+    var best5y=paths.reduce(function(a,b){return Math.round(a.income*Math.pow(1,a.type==='保守'?0.08:a.type==='均衡'?0.15:0.25,5))>Math.round(b.income*Math.pow(1,b.type==='保守'?0.08:b.type==='均衡'?0.15:0.25,5))?a:b});
+    var safest=paths.find(function(p){return p.type==='保守'})||paths[0];
+    html+='<div class="tip-box tip-success mt-16"><strong>&#x1f4ca; 对比分析：</strong><br>'+
+      '5年后收入最高：<strong>'+best5y.name+'</strong>（'+Math.round(best5y.income*Math.pow(1,best5y.type==='保守'?0.08:best5y.type==='均衡'?0.15:0.25,5)).toLocaleString()+'元/月）<br>'+
+      '最稳健路线：<strong>'+safest.name+'</strong>（年增长8%，风险最低）<br>'+
+      '建议：根据你的风险承受能力和当前修炼阶段，选择均衡路线通常是最优解。</div>';
+  }
+  c.innerHTML=html;
+}
+
+// ---- 脆弱性检测 ----
+function vulnTabHTML(){
+  return '<div class="scenario-card">'+
+    '<h3 style="font-size:15px;margin-bottom:10px">&#x1f6e1; 系统脆弱性检测</h3>'+
+    '<p class="text-sm text-secondary mb-16">基于全应用数据，自动扫描你人生系统中的单点故障和风险瓶颈</p>'+
+    '<button class="btn btn-primary mb-16" onclick="runVulnCheck()">&#x1f501; 重新检测</button>'+
+    '<div id="vuln-score-area"></div><div id="vuln-list"></div></div>'
+}
+function runVulnCheck(){
+  var alerts=[];var score=100;
+  var inc=get('monthlyIncome',0);var ef=get('efSaved',0);var fc=get('fateInputs',{}).fixedCost||0;
+  var ki=get('knowledgeItems',[]);var km=get('knowledgeMetrics',{});
+  var tr=get('trials',[]);var rv=get('reviews',[]);
+  var ck=get('checklist',[]);var ps=get('pathStage',0);
+  var ip=get('infoProfessional',0);var ie=get('infoEntertainment',0);
+  var fi=get('fateInputs',{});var ns=get('northStar');
+
+  // 1. 应急金检测
+  if(inc>0&&fc>0){
+    var efMonths=ef/fc;
+    if(efMonths<1){alerts.push({lv:'critical',icon:'&#x1f6a8;',title:'应急金严重不足',desc:'当前应急金仅覆盖'+efMonths.toFixed(1)+'个月生活费，远低于安全线6个月。一旦收入中断，极度危险。',action:'resource'});score-=25}
+    else if(efMonths<3){alerts.push({lv:'critical',icon:'&#x26a0;',title:'应急金不足',desc:'应急金覆盖'+efMonths.toFixed(1)+'个月，建议至少6个月。当前处于脆弱状态。',action:'resource'});score-=15}
+    else if(efMonths<6){alerts.push({lv:'warning',icon:'&#x1f4c8;',title:'应急金接近目标',desc:'应急金覆盖'+efMonths.toFixed(1)+'个月，还需'+(6-efMonths).toFixed(1)+'个月达标。',action:'resource'});score-=5}
+    else{alerts.push({lv:'ok',icon:'&#x2705;',title:'应急金充足',desc:'应急金覆盖'+efMonths.toFixed(1)+'个月生活费，抗风险能力强。'});score+=0}
+  }else if(inc===0){alerts.push({lv:'critical',icon:'&#x1f6a8;',title:'未设置收入',desc:'尚未填写月收入，无法进行财务分析。',action:'dashboard'});score-=20}
+
+  // 2. 收入单一性
+  var fa=get('pathActive',0)||0;var fp=get('pathPassive',0)||0;
+  var totalInc=fa+fp;
+  if(totalInc>0){
+    var passivePct=Math.round(fp/totalInc*100);
+    if(passivePct===0){alerts.push({lv:'warning',icon:'&#x26a0;',title:'收入100%依赖主动劳动',desc:'一旦停止工作就没有任何收入来源。建议开始建立被动收入管道。',action:'path'});score-=10}
+    else if(passivePct<20){alerts.push({lv:'warning',icon:'&#x1f4c8;',title:'被动收入占比过低('+passivePct+'%)',desc:'被动收入刚开始建立，还未形成有效缓冲。',action:'path'});score-=5}
+    else{alerts.push({lv:'ok',icon:'&#x2705;',title:'收入结构多元',desc:'被动收入占比'+passivePct+'%，有一定抗风险能力。'});}
+  }
+
+  // 3. 技能集中度
+  if(ki.length===0){alerts.push({lv:'warning',icon:'&#x1f4da;',title:'未记录修炼技能',desc:'尚未在知识修炼模块添加任何技能项，无法评估技能结构。',action:'knowledge'});score-=10}
+  else if(ki.length===1){alerts.push({lv:'warning',icon:'&#x26a0;',title:'技能单一化风险',desc:'仅有1个修炼技能项，一旦该技能贬值或被替代，收入将直接受影响。建议拓展第二技能。',action:'knowledge'});score-=8}
+  else{alerts.push({lv:'ok',icon:'&#x2705;',title:'技能结构多元',desc:'正在修炼'+ki.length+'个技能项，结构较健康。'});}
+
+  // 4. 学练比检测
+  if(km.learn>0){
+    var lr=km.learn;var pr=km.practice||0;var r=pr/lr;
+    if(r<3){alerts.push({lv:'critical',icon:'&#x1f6a8;',title:'学练比严重失衡 (1:'+r.toFixed(1)+')',desc:'练习远不足！可能陷入"永远毕不了业的学习爱好者"陷阱。书中要求1:6~1:10。',action:'knowledge'});score-=15}
+    else if(r<6){alerts.push({lv:'warning',icon:'&#x26a0;',title:'学练比偏低 (1:'+r.toFixed(1)+')',desc:'练习量不足，建议提升至1:6以上才能有效转化为能力。',action:'knowledge'});score-=5}
+    else{alerts.push({lv:'ok',icon:'&#x2705;',title:'学练比健康 (1:'+r.toFixed(1)+')',desc:'学与习结合良好，知识正在有效转化为能力。'});}
+  }
+
+  // 5. 试错转化率
+  if(tr.length>0){
+    var converted=tr.filter(function(x){return x.status==='success'}).length;
+    var learned=tr.filter(function(x){return x.status==='learn'}).length;
+    var rate=Math.round((converted+learned)/tr.length*100);
+    if(tr.length<3){alerts.push({lv:'warning',icon:'&#x1f9ea;',title:'试错次数不足('+tr.length+'次)',desc:'试错样本太少，无法形成有效认知。建议每月至少1次小成本试验。',action:'trial'});score-=5}
+    else if(rate<30){alerts.push({lv:'warning',icon:'&#x26a0;',title:'试错转化率低('+rate+'%)',desc:'大部分试错未产生学习或转化。建议每次试错后认真复盘教训。',action:'trial'});score-=5}
+    else{alerts.push({lv:'ok',icon:'&#x2705;',title:'试错转化良好('+rate+'%)',desc:''+tr.length+'次试错，转化率'+rate+'%，学习闭环有效。'});}
+  }else{
+    alerts.push({lv:'warning',icon:'&#x1f9ea;',title:'零试错记录',desc:'尚未记录任何试错经历。不试错就无法发现新路径，建议从小成本试验开始。',action:'trial'});score-=10
+  }
+
+  // 6. 信息饮食检测
+  var totalInfo=ip+ie;
+  if(totalInfo>0){
+    var profPct=Math.round(ip/totalInfo*100);
+    if(profPct<40){alerts.push({lv:'warning',icon:'&#x1f4f1;',title:'专业信息摄入不足('+profPct+'%)',desc:'专业信息占比低于40%，大部分时间在消费娱乐信息。建议提升至60%以上。',action:'intel'});score-=8}
+    else if(profPct<60){alerts.push({lv:'warning',icon:'&#x1f4c8;',title:'专业信息占比偏低('+profPct+'%)',desc:'还未达到60%的目标线，继续提升专业信息摄入。',action:'intel'});score-=3}
+    else{alerts.push({lv:'ok',icon:'&#x2705;',title:'信息饮食健康('+profPct+'%)',desc:'专业信息占比'+profPct+'%，认知输入质量良好。'});}
+  }
+
+  // 7. 复盘频率
+  if(rv.length===0){alerts.push({lv:'warning',icon:'&#x1f501;',title:'从未复盘',desc:'没有复盘就没有反馈循环。建议从周复盘开始，每周花5分钟回顾。',action:'review'});score-=10}
+  else{
+    var lastReviewDate=rv[0].date;var daysSince=Math.floor((Date.now()-new Date(lastReviewDate).getTime())/86400000);
+    if(daysSince>14){alerts.push({lv:'warning',icon:'&#x1f4c5;',title:'复盘停滞('+daysSince+'天前)',desc:'距上次复盘已超过2周，系统反馈循环可能断裂。',action:'review'});score-=8}
+  }
+
+  // 8. 北极星目标
+  if(!ns){alerts.push({lv:'warning',icon:'&#x2b50;',title:'缺少北极星目标',desc:'没有3年北极星目标，所有行动缺少锚点。建议尽快设定。',action:'decade'});score-=8}
+
+  // 9. 修炼阶段
+  if(!ps){alerts.push({lv:'warning',icon:'&#x1f6e3;',title:'未确定修炼阶段',desc:'不清楚自己处于时间换钱/技术换钱/资源换钱的哪个阶段，修炼方向模糊。',action:'path'});score-=5}
+
+  // 10. 固定开支占比
+  if(inc>0&&fc>0){
+    var fcPct=Math.round(fc/inc*100);
+    if(fcPct>70){alerts.push({lv:'critical',icon:'&#x1f6a8;',title:'固定开支占比过高('+fcPct+'%)',desc:'月固定开支占收入'+fcPct+'%，几乎没有储蓄和修炼空间。需要削减开支或增加收入。',action:'fate'});score-=12}
+    else if(fcPct>50){alerts.push({lv:'warning',icon:'&#x26a0;',title:'固定开支偏高('+fcPct+'%)',desc:'开支占比'+fcPct+'%，建议控制在50%以内，留出修炼和储蓄空间。',action:'fate'});score-=5}
+  }
+
+  // 11. 负债检测
+  if(fi.debts){
+    var debts=parseFloat(fi.debts);
+    if(!isNaN(debts)&&debts>inc*6){
+      alerts.push({lv:'critical',icon:'&#x1f6a8;',title:'负债水平过高',desc:'当前负债'+debts.toLocaleString()+'元，超过6个月收入。债务可能吞噬修炼资源。',action:'fate'});score-=15
+    }
+  }
+
+  score=Math.max(0,Math.min(100,score));
+  var scoreColor=score>=80?'var(--success)':score>=60?'var(--accent)':score>=40?'#f97316':'var(--danger)';
+  var scoreLabel=score>=80?'系统健康':score>=60?'需要关注':score>=40?'存在风险':'高度脆弱';
+
+  var sa=document.getElementById('vuln-score-area');if(sa){
+    sa.innerHTML='<div class="vuln-score"><div class="vuln-score-circle" style="background:'+scoreColor+'20;color:'+scoreColor+';border:3px solid '+scoreColor+'">'+score+'</div><div><div class="vuln-score-label" style="color:'+scoreColor+'">'+scoreLabel+'</div><div class="vuln-score-detail">检测'+alerts.length+'项，其中'+alerts.filter(function(a){return a.lv==='critical'}).length+'项严重风险，'+alerts.filter(function(a){return a.lv==='warning'}).length+'项需关注</div></div></div>'
+  }
+  var vl=document.getElementById('vuln-list');if(vl){
+    // 排序：critical > warning > ok
+    var order={critical:0,warning:1,ok:2};
+    alerts.sort(function(a,b){return order[a.lv]-order[b.lv]});
+    vl.innerHTML=alerts.map(function(a){
+      var nav={resource:'resource',dashboard:'dashboard',path:'path',knowledge:'knowledge',trial:'trial',intel:'intel',review:'review',decade:'decade',fate:'fate'}[a.action]||'';
+      return '<div class="vuln-alert '+a.lv+'"><div class="vuln-icon">'+a.icon+'</div><div class="vuln-body"><h4>'+a.title+'</h4><p>'+a.desc+'</p>'+(nav?'<div class="vuln-action" onclick="gotoModule(\''+nav+'\')">去处理 →</div>':'')+'</div></div>'
+    }).join('')
+  }
 }
 
 // ====== 初始化 ======
