@@ -241,19 +241,19 @@ fate:`<div class="page-header"><h2>命运改变法则</h2><p>想要改变自己�
 <button class="btn btn-primary" onclick="generateFateDiagnosis('rule')">&#x1f4cb; 生成基础诊断</button>
 <button class="btn btn-outline" onclick="generateFateDiagnosis('ai')">&#x1f9e0; AI深度分析（可选）</button>
 </div>
-<div id="fate-diagnosis"><div class="empty-state"><div class="icon">&#x1f3af;</div><p>填写上方五大法则后，点击「生成基础诊断」即可获得报告</p><p class="text-xs text-secondary mt-8">基础诊断无需任何配置，基于规则引擎即时生成<br>AI深度分析为可选增强功能，需在下方填写 DeepSeek API Key</p></div></div>
+<div id="fate-diagnosis"><div class="empty-state"><div class="icon">&#x1f3af;</div><p>填写上方五大法则后，点击「生成基础诊断」即可获得报告</p><p class="text-xs text-secondary mt-8">基础诊断无需任何配置，基于规则引擎即时生成<br>AI深度分析会自动收集你在<strong>全应用各模块</strong>填写的数据进行交叉验证<br>填的模块越多，AI诊断越精准（需填写 DeepSeek API Key）</p></div></div>
 <div id="fate-ai-loading" style="display:none;text-align:center;padding:32px 0;">
 <div style="display:inline-block;width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-<p class="mt-12 text-secondary">AI正在分析你的命运改变路径...</p></div>
+<p class="mt-12 text-secondary">AI正在分析你的全应用数据...</p><p class="text-xs text-secondary mt-4"><span id="ai-data-count">正在收集数据</span></p></div>
 <div id="fate-ai-result"></div></div>
 <div class="card" style="border-left:4px solid var(--teal);">
 <div class="card-title">&#x1f527; AI深度分析（可选）</div>
-<p class="text-sm text-secondary mb-12">基础诊断无需任何配置即可使用。AI深度分析为可选增强功能，接入 DeepSeek API，需自行申请 Key。不填也能正常使用基础诊断。</p>
+<p class="text-sm text-secondary mb-12">基础诊断无需任何配置即可使用。AI深度分析为可选增强功能，接入 DeepSeek API。<strong>AI会自动收集你在全应用13个模块中填写的所有数据</strong>，进行交叉验证和综合诊断——填写的模块越多，分析越精准。</p>
 <div class="grid-2">
 <div><label>DeepSeek API Key</label><input type="password" id="ai-key" placeholder="sk-..." onchange="saveAIKey(this.value)"><p class="text-xs text-secondary mt-4"><a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:var(--primary);">前往 DeepSeek 获取 API Key &rarr;</a></p></div>
 <div><label>分析语言风格</label><select id="ai-style" onchange="saveAIStyle(this.value)"><option value="direct">直接犀利（推荐）- 直指问题，不绕弯子</option><option value="encouraging">温和鼓励 - 肯定优点，逐步引导</option><option value="strategic">战略教练 - 聚焦长期策略和资源配比</option></select></div>
 </div>
-<div class="tip-box mt-12"><strong>说明：</strong>AI深度分析是可选功能。不填 API Key 时，「生成基础诊断」完全可用。API Key 存在你浏览器本地（localStorage），不会上传到任何服务器。你的数据仅发送给 DeepSeek API 进行分析，不被存储。</div>
+<div class="tip-box mt-12"><strong>说明：</strong>AI深度分析是可选功能。不填 API Key 时，「生成基础诊断」完全可用。<strong>AI会自动收集你在仪表盘、十年蓝图、时间管理、知识修炼、修炼路径、试错资本、情报系统、复盘中心等模块填写的所有数据</strong>，进行交叉验证。你在各模块填的数据越多，AI诊断越精准。API Key 存在你浏览器本地（localStorage），不会上传到任何服务器。数据仅发送给 DeepSeek API 进行分析，不被存储。</div>
 </div>`,
 time:`<div class="page-header"><h2>时间管理</h2><p>年计划做战略 -> 月计划做统筹 -> 日计划做执行</p></div>
 <div class="card"><div class="card-title">&#x23f3; 规划时间投入原则（10%）</div><div class="grid-4">
@@ -545,54 +545,188 @@ document.getElementById('fate-diagnosis').innerHTML=h;document.getElementById('f
 showToast('基础诊断报告已生成')}
 function saveAIKey(v){set('aiKey',v);showToast('API Key已保存')}
 function saveAIStyle(v){set('aiStyle',v)}
-async function generateFateAI(fi){
-const key=get('aiKey','');if(!key){showToast('请先在下方填写 DeepSeek API Key','warning');return}
-const style=get('aiStyle','direct');
-const inc=get('monthlyIncome',0);const birthYear=get('birthYear','');let ageInfo='';if(birthYear){const age=new Date().getFullYear()-parseInt(birthYear);ageInfo='用户年龄约'+age+'岁，'}
-const incInfo=inc>0?('月收入'+inc.toLocaleString()+'元，'):('月收入未填写，');
-const costRatio=fi.fixedCost&&inc?Math.round(parseInt(fi.fixedCost)/inc*100)+'%':'未填写';
-const prompt=`你是一位基于柏永辉《我的第一本人生规划手册》理念的人生规划教练。请根据以下用户信息，生成一份深度命运改变诊断报告。
+// ====== 全应用数据收集器 ======
+function collectAllData(){
+const d={};
+// 1. 总览仪表盘
+const by=get('birthYear');const inc=get('monthlyIncome');const tg=get('targetIncome');
+if(by){const age=new Date().getFullYear()-parseInt(by);d.age=age+'岁（出生'+by+'年）'}
+if(inc)d.monthlyIncome=inc;
+if(tg)d.targetIncome=tg;
+// 2. 命运改变法则
+const fi=get('fateInputs',{});
+if(fi.thinking)d.thinking=fi.thinking;
+if(fi.thinkingScore)d.thinkingScore=fi.thinkingScore+'/10';
+if(fi.fixedCost)d.fixedCost=fi.fixedCost;
+if(fi.debts)d.debts=fi.debts;
+if(fi.opportunities)d.opportunities=fi.opportunities;
+if(fi.talent)d.talent=fi.talent;
+// 3. 资源配置
+const ef=get('efSaved');
+if(ef)d.emergencyFund=ef;
+if(inc&&ef)d.emergencyMonths=(ef/(inc*0.4)).toFixed(1)+'个月生活费';
+// 4. 十年蓝图
+const ns=get('northStar');const tg10=get('tenYearGoal');
+if(ns)d.northStar=ns;
+if(tg10)d.tenYearGoal=tg10;
+const dd=get('decadeData',{});
+const ddKeys=Object.keys(dd);
+if(ddKeys.length){d.decadePlan=ddKeys.map(k=>{const v=dd[k];return k+'年:'+(v.goal||'')+(v.metric?'（指标:'+v.metric+'）':'')}).join('; ')}
+const di=get('decadeDiaries',[]);
+if(di.length)d.decadeDiary=di.slice(0,3).map(x=>(x.decision||'')+(x.message?'→给未来:'+x.message:'')).join(' | ');
+// 5. 时间管理
+const tk=get('tasks',{main:[],side:[],mini:[]});
+const allTasks=[...(tk.main||[]),...(tk.side||[]),...(tk.mini||[])];
+if(allTasks.length){const done=allTasks.filter(t=>t.done).length;d.taskCompletion=done+'/'+allTasks.length+'（完成率'+Math.round(done/allTasks.length*100)+'%）'}
+const yg=get('yearGoals',[]);
+if(yg.length){const yd=yg.filter(g=>g.done).length;d.yearGoals=yg.length+'个目标，已完成'+yd+'个。目标:'+yg.map(g=>g.text).join('; ')}
+const mp=get('monthPlan',{});
+if(mp.main||mp.cultivation||mp.drop)d.monthPlan=(mp.main?'主线:'+mp.main:'')+(mp.cultivation?' 修炼:'+mp.cultivation:'')+(mp.drop?' 断舍离:'+mp.drop:'');
+// 6. 知识修炼
+const km=get('knowledgeMetrics',{});
+if(km.learn||km.practice){const lr=km.learn||0;const pr=km.practice||0;d.learnHours=lr;d.practiceHours=pr;if(lr>0)d.learnRatio='1:'+(pr/lr).toFixed(1)}
+const ki=get('knowledgeItems',[]);
+if(ki.length)d.knowledgeItems=ki.map(k=>k.name+'（'+k.stage+'阶段,学'+(k.learnHours||0)+'h/练'+(k.practiceHours||0)+'h'+(k.learnHours>0?',比例1:'+(k.practiceHours/k.learnHours).toFixed(1):'')+'）').join('; ');
+const rl=get('readingList',[]);
+if(rl.length)d.readingList=rl.map(b=>b.name+'（'+b.count+'遍）').join('; ');
+const mz=get('mazeData',{});
+if(mz.benchmark)d.industryBenchmark=mz.benchmark;
+if(mz.progress)d.knowledgeMapProgress=mz.progress;
+// 7. 修炼路径
+const ps=get('pathStage');
+if(ps)d.pathStage=['时间换钱','技术换钱','资源换钱'][ps-1]||ps;
+// 8. 试错资本
+const tr=get('trials',[]);
+if(tr.length){const lr2=tr.filter(x=>x.status==='learn').length;const sc=tr.filter(x=>x.status==='success').length;d.trials={total:tr.length,learned:lr2,converted:sc,rate:Math.round((lr2+sc)/tr.length*100)+'%',items:tr.slice(0,5).map(t=>'【'+t.field+'】假设:'+t.hypothesis+'; 结果:'+(t.result||'未记录')+'; 教训:'+(t.lesson||'未记录')+'; 状态:'+t.status).join('\n')}}
+// 9. 情报系统
+const ia=get('intelAnswers',{});
+const answeredQ=Object.keys(ia).filter(k=>ia[k]&&ia[k].trim());
+if(answeredQ.length){const intelQ=['想要什么数据','已有什么信息','信息对决策的价值','信息系统应用效果','兴趣信息占比','专业知识占比','人际沟通占比','提升20-30%是否有方案','提升50-100%是否有方案','知道信息后下一步行动'];d.intelAnswers=answeredQ.map(k=>'Q'+(parseInt(k)+1)+'.'+intelQ[parseInt(k)]+' → '+ia[k]).join('\n')}
+const ip=get('infoProfessional');const ie=get('infoEntertainment');
+if(ip||ie){const t=(ip||0)+(ie||0);if(t>0)d.infoRatio='专业知识'+ip+'h vs 娱乐'+ie+'h（专业占比'+Math.round((ip||0)/t*100)+'%）'}
+const km2=get('knowledgeMap',[]);
+if(km2.length)d.knowledgeMap=km2.join('; ');
+// 10. 复盘
+const rv=get('reviews',[]);
+if(rv.length){const dc=rv.filter(r=>r.type==='daily').length;const wc=rv.filter(r=>r.type==='weekly').length;const mc=rv.filter(r=>r.type==='monthly').length;d.reviewStats='日复盘'+dc+'次,周复盘'+wc+'次,月复盘'+mc+'次';if(rv[0])d.lastReview=rv[0].type+'('+rv[0].date+'):'+Object.values(rv[0].answers).filter(v=>v).join(' / ')}
+const ck=get('checklist',[]);
+if(ck.length){const ci=['已计算时薪','有应急储备金','收入按四分法分配','有3年北极星目标','有10年规划','每天用1-3-5','学练比1:6以上','定期复盘','专业信息占比>60%','知道修炼阶段','有被动收入','用ROI思维评估投入'];d.checklist=ck.length+'/12项已完成：'+ck.map(i=>ci[i]).join('; ')}
+return d;
+}
+function buildAIPrompt(d,style){
+const styleDesc=style==='direct'?'直接犀利，直指问题，不绕弯子，用词要狠但准确':style==='encouraging'?'温和鼓励，先肯定优点，再逐步引导，语气温暖但不回避问题':'聚焦长期战略，关注资源配置、时间杠杆和复利效应';
+let sections=[];
+// 基本信息
+let basic=[];
+if(d.age)basic.push('年龄：'+d.age);
+if(d.monthlyIncome)basic.push('月收入：'+d.monthlyIncome+'元');
+if(d.targetIncome)basic.push('目标收入：'+d.targetIncome+'元');
+if(d.pathStage)basic.push('修炼阶段：'+d.pathStage);
+if(d.thinking)basic.push('思维模式：'+d.thinking+'（自评'+(d.thinkingScore||'?')+'）');
+if(d.fixedCost&&d.monthlyIncome)basic.push('月固定开支：'+d.fixedCost+'元（占收入'+Math.round(d.fixedCost/d.monthlyIncome*100)+'%）');
+if(basic.length)sections.push('【基本信息】\n'+basic.join('\n'));
+// 财务状况
+let fin=[];
+if(d.emergencyFund)fin.push('应急储备金：'+d.emergencyFund+'元');
+if(d.emergencyMonths)fin.push('可覆盖：'+d.emergencyMonths);
+if(fin.length)sections.push('【财务状况】\n'+fin.join('\n'));
+// 十年蓝图
+let dec=[];
+if(d.northStar)dec.push('北极星目标：'+d.northStar);
+if(d.tenYearGoal)dec.push('十年目标：'+d.tenYearGoal);
+if(d.decadePlan)dec.push('逐年规划：'+d.decadePlan);
+if(d.decadeDiary)dec.push('十年日记：'+d.decadeDiary);
+if(dec.length)sections.push('【十年蓝图】\n'+dec.join('\n'));
+// 时间管理
+let tm=[];
+if(d.taskCompletion)tm.push('1-3-5任务完成情况：'+d.taskCompletion);
+if(d.yearGoals)tm.push('年度目标：'+d.yearGoals);
+if(d.monthPlan)tm.push('月度计划：'+d.monthPlan);
+if(tm.length)sections.push('【时间管理与执行力】\n'+tm.join('\n'));
+// 知识修炼
+let kn=[];
+if(d.learnHours||d.practiceHours)kn.push('总学习'+(d.learnHours||0)+'h / 总练习'+(d.practiceHours||0)+'h');
+if(d.learnRatio)kn.push('学练比：'+d.learnRatio+'（书中要求1:6~1:10）');
+if(d.knowledgeItems)kn.push('修炼项：'+d.knowledgeItems);
+if(d.readingList)kn.push('十遍读书法：'+d.readingList);
+if(d.industryBenchmark)kn.push('行业对标：'+d.industryBenchmark);
+if(d.knowledgeMapProgress)kn.push('知识地图完成度：'+d.knowledgeMapProgress);
+if(kn.length)sections.push('【知识修炼】\n'+kn.join('\n'));
+// 试错资本
+if(d.trials)sections.push('【试错资本】\n总试错'+d.trials.total+'次，已复盘'+d.trials.learned+'次，已转化'+d.trials.converted+'次，转化率'+d.trials.rate+'\n近期试错记录：\n'+d.trials.items);
+// 情报系统
+let intel=[];
+if(d.intelAnswers)intel.push('灵魂拷问回答：\n'+d.intelAnswers);
+if(d.infoRatio)intel.push('信息摄入比例：'+d.infoRatio);
+if(d.knowledgeMap)intel.push('专业知识地图：'+d.knowledgeMap);
+if(intel.length)sections.push('【情报系统】\n'+intel.join('\n'));
+// 复盘
+let rev=[];
+if(d.reviewStats)rev.push('复盘统计：'+d.reviewStats);
+if(d.lastReview)rev.push('最近一次复盘：'+d.lastReview);
+if(d.checklist)rev.push('自检清单：'+d.checklist);
+if(rev.length)sections.push('【复盘系统】\n'+rev.join('\n'));
+// 命运改变法则
+let fate=[];
+if(d.debts)fate.push('人生债清单：'+d.debts);
+if(d.opportunities)fate.push('一鸣惊人机会：'+d.opportunities);
+if(d.talent)fate.push('天赋方向：'+d.talent);
+if(fate.length)sections.push('【命运改变法则】\n'+fate.join('\n'));
+const dataStr=sections.length?sections.join('\n\n'):'用户尚未填写任何数据';
+return `你是一位基于柏永辉《我的第一本人生规划手册》理念的人生规划教练。请根据以下用户在全应用中填写的数据，生成一份深度命运改变诊断报告。
 
-${ageInfo}${incInfo}月固定开支${(fi.fixedCost||'未填写').toString()}元（占收入${costRatio}）。
+以下是用户在各个模块中填写的真实数据（未填写的模块不会出现）：
 
-用户自评信息：
-1. 思维模式：${fi.thinking||'未填写'}（自评得分：${fi.thinkingScore||'未填写'}/10）
-2. 人生债清单：${fi.debts||'未填写'}
-3. 一鸣惊人机会：${fi.opportunities||'未填写'}
-4. 天赋方向：${fi.talent||'未填写'}
+${dataStr}
 
-分析要求（${style==='direct'?'直接犀利，直指问题，不绕弯子，用词要狠但准确':style==='encouraging'?'温和鼓励，先肯定优点，再逐步引导，语气温暖但不回避问题':'聚焦长期战略，关注资源配置、时间杠杆和复利效应'}）：
+分析要求（${styleDesc}）：
 
 请按以下结构输出（使用Markdown格式）：
 
 ## 综合诊断
 用2-3句话概括用户当前的命运改变处境，指出最核心的问题。
 
+## 各模块一致性分析
+交叉验证用户在不同模块填写的数据是否一致：
+- 天赋方向 vs 实际修炼技能（是否匹配？）
+- 北极星目标 vs 月度计划（是否对齐？）
+- 自评思维模式 vs 实际学练比/信息摄入比例（言行是否一致？）
+- 机会识别 vs 试错记录（是光说不练还是在行动？）
+- 年度目标完成率 vs 1-3-5任务完成率（执行力如何？）
+如果不一致，明确指出矛盾在哪里。
+
 ## 思维模式深度分析
 - 用户的思维模式是否匹配当前收入水平？
-- 具体哪些表现说明问题？（引用用户的回答）
-- 下一步思维升级的方向是什么？
+- 结合信息摄入比例和学练比，判断用户是否真正具备数学思维
+- 下一步思维升级方向
 
-## 开支与自由度分析
+## 开支与财务自由度分析
 - 当前开支结构对命运改变的影响
+- 应急储备金是否足够支撑修炼计划？
 - 可支配资源是否足以支撑修炼计划？
 - 具体的开支优化建议（给出数字）
 
 ## 人生债风险评估
 - 列出的「债」中，哪一项不还的代价最大？
 - 建议的还债优先级排序
-- 每项债的「利息」（拖延的后果）是什么？
+- 每项债的「利息」（拖延的后果）
 
 ## 机会抓住概率评估
 - 用户识别的机会是否真实可行？
-- 抓住每个机会需要的前置条件
+- 结合试错记录判断：用户是在行动还是空想？
 - 当前能力与机会之间的差距有多大？
 - 建议的行动时间表
 
 ## 天赋变现路径
 - 天赋如何转化为收入提升？
-- 在当前修炼阶段（时间换钱/技术换钱/资源换钱）如何利用天赋？
-- 具体的修炼方向建议
+- 在当前修炼阶段如何利用天赋？
+- 结合修炼中的技能项，给出具体修炼方向
+
+## 执行力诊断
+- 1-3-5任务完成率如何？年度目标完成情况如何？
+- 复盘频率是否达标？（日/周/月三节奏）
+- 自检清单完成多少项？哪项最该补上？
+- 是规划型还是执行型？执行力是命运改变的真正瓶颈吗？
 
 ## 90天行动清单
 给出5-7条具体的、可量化的、有时间节点的行动建议。每条建议必须包含：
@@ -604,14 +738,25 @@ ${ageInfo}${incInfo}月固定开支${(fi.fixedCost||'未填写').toString()}元�
 指出2-3个用户可能忽视的风险，用「如果你不...那么...」的句式。
 
 重要：所有建议必须基于「数学思维」——用具体数字说话，不要说「努力」「加油」这种空话。引用书中的核心理念（如10%规划原则、1:6学练比、四分法收入分配、时薪思维、基于现实修炼等）。`;
+}
+async function generateFateAI(fi){
+const key=get('aiKey','');if(!key){showToast('请先在下方填写 DeepSeek API Key','warning');return}
+const style=get('aiStyle','direct');
+const d=collectAllData();
+const fi2=get('fateInputs',{});
+const filledCount=Object.keys(fi2).filter(k=>fi2[k]).length;
+const totalDataPoints=Object.keys(d).length;
+if(filledCount<3&&totalDataPoints<5){showToast('请至少在命运改变法则填写3项，或在其他模块填写更多数据后再使用AI分析','warning');return}
+const prompt=buildAIPrompt(d,style);
 const loadingEl=document.getElementById('fate-ai-loading');const resultEl=document.getElementById('fate-ai-result');const diagEl=document.getElementById('fate-diagnosis');
 diagEl.innerHTML='';resultEl.innerHTML='';loadingEl.style.display='block';
+const dataCount=document.getElementById('ai-data-count');if(dataCount)dataCount.textContent='已收集'+totalDataPoints+'个数据点';
 try{
-const res=await fetch('https://api.deepseek.com/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:'deepseek-chat',messages:[{role:'system',content:'你是一位基于柏永辉《我的第一本人生规划手册》理念的人生规划教练。请用中文回答，使用Markdown格式。'},{role:'user',content:prompt}],temperature:0.7,max_tokens:4096,stream:false})});
+const res=await fetch('https://api.deepseek.com/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:'deepseek-chat',messages:[{role:'system',content:'你是一位基于柏永辉《我的第一本人生规划手册》理念的人生规划教练。请用中文回答，使用Markdown格式。你的分析必须基于用户填写的真实数据，不要编造未提供的信息。'},{role:'user',content:prompt}],temperature:0.7,max_tokens:4096,stream:false})});
 if(!res.ok){const err=await res.text();let msg='AI分析失败';if(res.status===401)msg='API Key无效，请检查Key是否正确';else if(res.status===429)msg='请求频率超限，请稍后重试';else if(res.status===402)msg='API余额不足，请前往DeepSeek平台充值';else msg='AI分析失败：'+res.status;showToast(msg,'error');loadingEl.style.display='none';return}
 const data=await res.json();const text=data.choices?.[0]?.message?.content||'AI未返回内容';
 loadingEl.style.display='none';
-resultEl.innerHTML='<div class="card" style="border-left:4px solid var(--teal);"><div class="card-title">&#x1f9e0; AI深度分析报告</div><div class="ai-report">'+markdownToHtml(text)+'</div><div style="text-align:right;margin-top:12px;"><button class="btn btn-outline" onclick="exportAIReport()">&#x2b07; 保存报告</button></div></div>';
+resultEl.innerHTML='<div class="card" style="border-left:4px solid var(--teal);"><div class="card-title">&#x1f9e0; AI深度分析报告</div><div class="text-xs text-secondary mb-8">基于全应用'+totalDataPoints+'个数据点综合分析 · '+new Date().toLocaleString('zh-CN')+'</div><div class="ai-report">'+markdownToHtml(text)+'</div><div style="text-align:right;margin-top:12px;"><button class="btn btn-outline" onclick="exportAIReport()">&#x2b07; 保存报告</button></div></div>';
 showToast('AI分析报告已生成')}catch(e){loadingEl.style.display='none';showToast('网络错误：'+e.message,'error')}
 }
 function markdownToHtml(md){
