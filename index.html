@@ -2,7 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>人生规划生活助手 — 基于柏永辉《我的第一本人生规划手册》</title>
 <script src="./chart.umd.min.js"></script>
 <style>
@@ -97,6 +100,7 @@ textarea{resize:vertical;min-height:70px}
 .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(2px)}.modal-overlay.show{display:flex;animation:fadeIn 0.2s ease}.modal{background:var(--surface);border-radius:var(--radius);padding:26px;max-width:520px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:var(--shadow-lg)}.modal h3{margin-bottom:16px;font-size:17px}.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
 .empty-state{text-align:center;padding:32px 20px;color:var(--text-tertiary)}.empty-state .icon{font-size:36px;margin-bottom:8px;opacity:0.5}
 .toast-container{position:fixed;top:20px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:8px}.toast{background:var(--surface);border-radius:var(--radius-sm);padding:12px 18px;box-shadow:var(--shadow-lg);font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;animation:slideIn 0.3s ease;border-left:3px solid var(--success);max-width:360px}.toast.toast-error{border-left-color:var(--danger)}.toast.toast-warning{border-left-color:var(--accent)}
+.sop-remind-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);font-size:12px}.sop-day-chip{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;border:1px solid var(--border);cursor:pointer;font-size:10px;color:var(--text-tertiary);user-select:none;transition:all .15s}.sop-day-chip.on{background:var(--primary);border-color:var(--primary);color:#fff}
 .trial-card{background:var(--surface);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:10px;border-left:4px solid var(--purple);transition:var(--transition)}.trial-card:hover{box-shadow:var(--shadow-md)}.trial-status{display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600}.trial-fail{background:var(--danger-light);color:var(--danger-dark)}.trial-learn{background:var(--accent-light);color:var(--accent-dark)}.trial-success{background:var(--success-light);color:var(--success-dark)}
 .reading-tracker{display:flex;gap:4px;margin:8px 0;flex-wrap:wrap}.reading-dot{width:24px;height:24px;border-radius:50%;border:2px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;cursor:pointer;transition:var(--transition);color:var(--text-tertiary)}.reading-dot:hover{border-color:var(--primary)}.reading-dot.done{background:var(--success);border-color:var(--success);color:#fff}
 .fate-card{background:var(--surface);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:14px;border-top:4px solid var(--purple);transition:var(--transition)}.fate-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}.fate-card .fate-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--purple);color:#fff;font-size:13px;font-weight:700;margin-bottom:8px}.fate-card h4{font-size:15px;font-weight:700;margin-bottom:6px}.fate-card .fate-desc{font-size:12px;color:var(--text-secondary);margin-bottom:10px}
@@ -247,11 +251,66 @@ textarea{resize:vertical;min-height:70px}
 .toggle-slider:before{content:"";position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:var(--transition)}
 input:checked+.toggle-slider{background:var(--success)}
 input:checked+.toggle-slider:before{transform:translateX(20px)}
+/* ====== 移动端适配 ====== */
+.mobile-menu-btn{display:none;position:fixed;left:12px;top:12px;z-index:1200;width:42px;height:42px;border-radius:12px;border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow-md);cursor:pointer;font-size:19px;align-items:center;justify-content:center;color:var(--text-secondary);transition:var(--transition)}
+.mobile-menu-btn:active{transform:scale(.94)}
+.sidebar-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:1050;opacity:0;pointer-events:none;transition:opacity .2s ease;backdrop-filter:blur(1px)}
+.sidebar-backdrop.show{opacity:1;pointer-events:auto}
+@media(max-width:768px){
+  /* 侧边栏改为抽屉式 */
+  .sidebar{position:fixed;left:0;top:0;bottom:0;width:250px;max-width:82vw;transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);z-index:1100;box-shadow:var(--shadow-lg)}
+  .sidebar.open{transform:translateX(0)}
+  /* 恢复被900px规则隐藏的文字标签 */
+  .sidebar-header h1{display:block;font-size:15px}
+  .sidebar-header p{display:block}
+  .sidebar-header .logo{justify-content:flex-start}
+  .sidebar-header .logo span{display:inline}
+  .nav-item span:not(.nav-icon){display:inline}
+  .nav-section-label{display:block}
+  .nav-item{justify-content:flex-start;padding:9px 20px}
+  .sidebar-footer{display:flex}
+  .backup-info{display:block}
+  .mobile-menu-btn{display:flex}
+  .main{max-width:100%;padding:60px 12px 24px;padding-left:calc(12px + env(safe-area-inset-left))}
+  .page-header{padding-left:48px}
+  .sidebar-header{padding-top:calc(14px + env(safe-area-inset-top))}
+}
+@media(max-width:600px){
+  .card{padding:14px;margin-bottom:12px}
+  .card-title{font-size:14px;flex-wrap:wrap}
+  .page-header{margin-bottom:14px}
+  .page-header h2{font-size:19px}
+  .page-header p{font-size:12px}
+  .stat-card{padding:14px 8px}
+  .stat-value{font-size:22px}
+  .grid-4{grid-template-columns:1fr 1fr}
+  .grid-3{grid-template-columns:1fr 1fr}
+  .toast-container{left:12px;right:12px;top:12px}
+  .toast{max-width:100%;padding:10px 14px;font-size:12px}
+  .modal{padding:16px;width:94%;max-height:88vh}
+  .modal h3{font-size:16px}
+  .modal-actions{flex-wrap:wrap;gap:8px}
+  .modal-actions .btn{flex:1;justify-content:center;min-width:110px}
+  /* iOS Safari：输入框字号小于16px聚焦时会自动缩放页面 */
+  input[type=text],input[type=number],input[type=date],input[type=time],textarea,select{font-size:16px}
+  .flex-between{flex-wrap:wrap;gap:6px}
+  .knowledge-header{flex-wrap:wrap;gap:6px}
+  .btn{padding:8px 14px}
+  .btn-danger{padding:5px 9px;font-size:11px}
+  .task-item{flex-wrap:wrap}
+  .ratio-bar{font-size:10px}
+}
+@media(max-width:380px){
+  .grid-4,.grid-3{grid-template-columns:1fr}
+  .stat-value{font-size:20px}
+}
 </style>
 </head>
 <body>
 <div class="app">
-<aside class="sidebar">
+<button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="打开导航菜单">&#9776;</button>
+<div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar(false)"></div>
+<aside class="sidebar" id="sidebar">
 <div class="sidebar-header"><div class="logo"><div class="logo-icon">&#x1f3ed;</div><div><h1>人生规划助手</h1></div><div class="reminder-bell" id="reminder-bell" onclick="gotoModule('reminders')">&#x1f514;<span class="bell-count zero" id="bell-count">0</span></div></div><p>基于柏永辉《我的第一本人生规划手册》</p></div>
 <nav class="nav">
 <div class="nav-section-label">总览</div>
@@ -263,6 +322,7 @@ input:checked+.toggle-slider:before{transform:translateX(20px)}
 <div class="nav-section-label">执行</div>
 <div class="nav-item" data-page="resource"><span class="nav-icon">&#x1f4b0;</span><span>资源配置</span></div>
 <div class="nav-item" data-page="time"><span class="nav-icon">&#x23f3;</span><span>时间管理</span></div>
+<div class="nav-item" data-page="sop"><span class="nav-icon">&#x1f4cb;</span><span>个人SOP</span></div>
 <div class="nav-item" data-page="knowledge"><span class="nav-icon">&#x1f4da;</span><span>知识修炼</span><span class="nav-badge" id="nav-badge-knowledge" style="display:none;">!</span></div>
 <div class="nav-section-label">修炼</div>
 <div class="nav-item" data-page="path"><span class="nav-icon">&#x1f6e3;</span><span>修炼路径</span></div>
@@ -436,6 +496,20 @@ time:`<div class="page-header"><h2>时间管理</h2><p>年计划做战略 -> 月
 <label>本月主线任务（来自年计划拆解）</label><textarea id="mp-main" rows="2" placeholder="本月最重要的1~2个主线任务..." onchange="saveMonthPlan('main',this.value)"></textarea>
 <label class="mt-12">本月修炼重点</label><textarea id="mp-cultivation" rows="2" placeholder="本月重点修炼的技能/知识..." onchange="saveMonthPlan('cultivation',this.value)"></textarea>
 <label class="mt-12">本月需要断舍离的</label><textarea id="mp-drop" rows="2" placeholder="不做什么比做什么更重要..." onchange="saveMonthPlan('drop',this.value)"></textarea></div></div>`,
+sop:`<div class="page-header"><h2>个人 SOP</h2><p>固定每天 80% 的动作 - 把重复事务流程化，让执行力在低谷期依然稳定</p></div>
+<div class="card"><div class="card-title">&#x1f9ee; 秩序感看板 — 固定 80% 动作</div><p class="text-sm text-secondary mb-16">把每天重复的琐事标记为「固定动作」，形成无需决策的自动程序。固定 80% 动作能减少决策疲劳、消除内耗，留出精力给 20% 的弹性与惊喜。</p>
+<div id="sop-order-board"></div>
+<div class="flex gap-8 mt-12"><input type="text" id="sop-new-action" placeholder="+ 添加一个日常动作（如：晨起喝水、整理桌面）..." style="flex:1" onkeypress="if(event.key==='Enter')addSopAction()"><button class="btn btn-primary btn-sm" onclick="addSopAction()">添加</button></div>
+<div class="tip-box mt-12"><strong>原理：</strong>「自然界选择最短的道路」—— 每天规律做事就是耗能最少的道路。固定 80% 不是死板，是给 20% 的弹性与惊喜留出精力。</div></div>
+<div class="grid-2"><div class="card"><div class="card-title">&#x1f4cb; 我的 SOP 流程库</div><div id="sop-list"></div><div class="flex gap-8 mt-12"><input type="text" id="sop-new-tpl" placeholder="新建 SOP（如：晨间仪式、出差打包）..." style="flex:1"><button class="btn btn-primary btn-sm" onclick="addSopTemplate()">新建</button></div>
+<div class="text-xs text-secondary mt-8">三步建立法：盘点高频场景 → 回忆痛点场景 → 写出步骤 + 用时。每个 SOP 可单独设置 &#x23f0; 提醒时间和生效日，到点会自动通知你该执行哪个流程。</div></div>
+<div class="card"><div class="card-title">&#x1f4a1; 预置 SOP 模板</div><p class="text-sm text-secondary mb-12">点击「应用」一键导入到你的流程库</p>
+<div id="sop-presets"></div></div></div>
+<div class="card"><div class="card-title">&#x1f501; 今日执行</div><p class="text-sm text-secondary mb-16">选择一个 SOP，按步骤打勾执行。完成的步骤会记录到今日秩序感中。</p>
+<div id="sop-run-area"></div></div>
+<div class="card"><div class="card-title">&#x1f4dc; 方法论溯源</div><div class="tip-box"><strong>什么是个人 SOP？</strong>Standard Operating Procedure（标准作业程序）—— 找到生活/工作中经常重复的事情，提炼成标准化流程，下次直接调取执行，不用每次从零思考。它不是死板的规则，而是经验复用机制：把过去的经验沉淀进 SOP，未来随时复用迭代。</div>
+<div class="tip-box tip-success mt-8"><strong>为什么有效？</strong>多位实践者的共识：SOP 是「低谷保护机制」—— 在人生低谷、精力最差的时候，SOP 让执行力保持稳定，避免向更糟的方向坍缩。</div>
+<div class="tip-box mt-8"><strong>&#x23f0; 提醒说明：</strong>为 SOP 设置提醒时间后，到点会弹出应用内提示；若在「提醒中心」开启系统通知，还能收到浏览器/桌面通知（需保持本应用在浏览器中打开）。当天执行过的 SOP 不会再重复提醒。</div></div>`,
 knowledge:`<div class="page-header"><h2>知识修炼</h2><p>「学」和「习」是两回事 - 从知道到内化至少需要 6 倍的练习时间</p></div>
 <div class="card"><div class="card-title">&#x2696; 学与习的比例（1:6 ~ 1:10）</div>
 <div class="tip-box"><strong>关键原则：</strong>听老师讲课 1 小时，你需要至少 6 小时的练习时间。一年只有 600 小时碎片时间的你，其实只有不到 100 小时的学习时间，剩下 500 多小时都得用来实践和练习。</div>
@@ -625,16 +699,18 @@ function exportData(){const d=JSON.stringify(store,null,2);const b=new Blob([d],
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=(ev)=>{try{store=JSON.parse(ev.target.result);saveStore();showToast('数据导入成功，页面将刷新');setTimeout(()=>location.reload(),1500)}catch(err){showToast('导入失败：文件格式错误','error')}};r.readAsText(f)}
 
 // ====== 导航 ======
+function toggleSidebar(force){const sb=document.getElementById('sidebar');const bd=document.getElementById('sidebar-backdrop');if(!sb||!bd)return;const open=(typeof force==='boolean')?force:!sb.classList.contains('open');sb.classList.toggle('open',open);bd.classList.toggle('show',open)}
 document.querySelectorAll('.nav-item').forEach(item=>{
 item.addEventListener('click',()=>{
 document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
 item.classList.add('active');
 renderPage(item.dataset.page);
 onPageEnter(item.dataset.page);
-})});
+toggleSidebar(false)})});
+window.addEventListener('resize',()=>{if(window.innerWidth>768)toggleSidebar(false)});
 
 function onPageEnter(page){switch(page){
-case'dashboard':renderDashboard();break;case'lifeclock':renderLifeClock();break;case'resource':renderResource();break;case'decade':renderDecade();break;case'fate':renderFate();break;case'time':renderTime();break;case'knowledge':renderKnowledge();break;case'path':renderPath();break;case'trial':renderTrial();break;case'intel':renderIntel();break;case'review':renderReview();break;case'growth':renderGrowth();break;case'simulation':renderSimulation();break;case'feedback':renderFeedback();break;case'reminders':renderReminders();break;case'aichat':renderAIChat();break}}
+case'dashboard':renderDashboard();break;case'lifeclock':renderLifeClock();break;case'resource':renderResource();break;case'decade':renderDecade();break;case'fate':renderFate();break;case'time':renderTime();break;case'sop':renderSOP();break;case'knowledge':renderKnowledge();break;case'path':renderPath();break;case'trial':renderTrial();break;case'intel':renderIntel();break;case'review':renderReview();break;case'growth':renderGrowth();break;case'simulation':renderSimulation();break;case'feedback':renderFeedback();break;case'reminders':renderReminders();break;case'aichat':renderAIChat();break}}
 
 const charts={};function destroyChart(k){if(charts[k]){charts[k].destroy();delete charts[k]}}
 
@@ -1238,6 +1314,36 @@ function calcInfoRatio(){const pr=parseInt(document.getElementById('info-profess
 function renderKnowledgeMap(){const it=get('knowledgeMap',[]);const l=document.getElementById('knowledge-map-list');if(!it.length){l.innerHTML='<div class="empty-state"><p>暂无专业知识地图项</p></div>';return}l.innerHTML=it.map((x,i)=>'<div class="task-item"><div class="task-check" style="border-color:var(--primary);background:var(--primary-light);"></div><div class="task-text">'+x+'</div><button class="btn btn-danger" onclick="deleteMapItem('+i+')">&#x2715;</button></div>').join('')}
 function addMapItem(){const tx=document.getElementById('new-map-item').value.trim();if(!tx)return;const it=get('knowledgeMap',[]);it.push(tx);set('knowledgeMap',it);document.getElementById('new-map-item').value='';renderKnowledgeMap()}
 function deleteMapItem(i){const it=get('knowledgeMap',[]);it.splice(i,1);set('knowledgeMap',it);renderKnowledgeMap()}
+
+// ====== 个人SOP ======
+const SOP_PRESETS=[
+{name:'晨间仪式 SOP',scene:'高频',icon:'&#x1f305;',remind:{time:'06:30',days:[0,1,2,3,4,5,6]},steps:[{text:'6:00 起床，不碰手机',timeMin:5},{text:'喝一杯温水',timeMin:2},{text:'运动拉伸 15 分钟',timeMin:15},{text:'深度阅读 30 分钟',timeMin:30},{text:'列出今日 3 件要紧事并排优先级',timeMin:10},{text:'吃早餐',timeMin:15}]},
+{name:'睡前复盘 SOP',scene:'高频',icon:'&#x1f319;',remind:{time:'21:30',days:[0,1,2,3,4,5,6]},steps:[{text:'记录 3 件感恩小事',timeMin:5},{text:'检查今日主线任务完成情况',timeMin:5},{text:'写下明日 3 件要紧事',timeMin:10},{text:'整理桌面，准备明日所需',timeMin:10},{text:'22:30 前入睡',timeMin:0}]},
+{name:'每周复盘 SOP',scene:'高频',icon:'&#x1f4c5;',remind:{time:'20:00',days:[0]},steps:[{text:'汇总本周计划完成率',timeMin:10},{text:'统计修炼投入小时数',timeMin:10},{text:'记录本周最大收获与教训',timeMin:15},{text:'写下下周需要调整的点',timeMin:10},{text:'迭代更新你的 SOP',timeMin:10}]},
+{name:'情绪急救 SOP',scene:'痛点',icon:'&#x1f494;',steps:[{text:'给当前情绪命名（愤怒/焦虑/低落）',timeMin:2},{text:'54321 感官法拉回当下：5看4触3听2闻1尝',timeMin:5},{text:'4-7-8 呼吸法 3 轮',timeMin:3},{text:'散步 10 分钟',timeMin:10},{text:'记录情绪触发源与身体反应',timeMin:5}]}
+];
+function renderSOP(){renderSopBoard();renderSopList();renderSopPresets();renderSopRun()}
+function renderSopBoard(){const a=get('sopActions',[]);const c=document.getElementById('sop-order-board');const fixed=a.filter(x=>x.fixed).length;const total=a.length;const pct=total>0?Math.round(fixed/total*100):0;const stat='<div class="flex-between mb-8"><span class="text-secondary text-sm">固定动作 '+fixed+'/'+total+'</span><span class="font-bold" style="color:'+(pct>=80?'var(--success)':pct>=50?'var(--accent)':'var(--danger)')+';">'+pct+'% '+(pct>=80?'&#x2714; 秩序感良好':'目标 80%')+'</span></div>';const bar='<div class="ratio-bar"><div class="ratio-learn" style="width:'+pct+'%">固定</div><div class="ratio-practice" style="width:'+(100-pct)+'%">弹性</div></div>';if(total===0){c.innerHTML='<div class="empty-state"><div class="icon">&#x1f9ee;</div><p>还没有日常动作</p><p class="text-xs">添加你每天重复的小事，标记哪些是「固定」的</p></div>'+bar;return}c.innerHTML=stat+bar+'<div class="mt-12">'+a.map(x=>'<div class="task-item '+(x.fixed?'completed':'')+'"><div class="task-check '+(x.fixed?'done':'')+'" onclick="toggleSopFixed(\''+x.id+'\')"></div><div class="task-text">'+x.name+(x.timeMin?'<span class="text-xs" style="color:var(--text-tertiary);"> · '+x.timeMin+'min</span>':'')+'</div><button class="btn btn-danger" onclick="deleteSopAction(\''+x.id+'\')">&#x2715;</button></div>').join('')+'</div>'}
+function addSopAction(){const f=document.getElementById('sop-new-action');const tx=f.value.trim();if(!tx)return;const a=get('sopActions',[]);a.push({id:Date.now().toString(),name:tx,fixed:false,timeMin:0});set('sopActions',a);f.value='';renderSopBoard()}
+function toggleSopFixed(id){const a=get('sopActions',[]);const x=a.find(t=>t.id===id);if(x){x.fixed=!x.fixed;set('sopActions',a);renderSopBoard()}}
+function deleteSopAction(id){let a=get('sopActions',[]);a=a.filter(x=>x.id!==id);set('sopActions',a);renderSopBoard()}
+function renderSopList(){const t=get('sopTemplates',[]);const l=document.getElementById('sop-list');if(!t.length){l.innerHTML='<div class="empty-state"><div class="icon">&#x1f4cb;</div><p>还没有 SOP 流程</p><p class="text-xs">新建一个，或从右侧模板一键导入</p></div>';return}l.innerHTML=t.map((x,i)=>{const totalT=x.steps.reduce((s,st)=>s+(st.timeMin||0),0);const rm=x.remind||{};const rmDays=(rm.days&&rm.days.length)?rm.days:[0,1,2,3,4,5,6];const remindRow='<div class="sop-remind-row"><span class="text-xs text-secondary">&#x23f0; 提醒</span><input type="time" value="'+(rm.time||'')+'" style="font-size:12px;padding:2px 6px;border:1px solid var(--border);border-radius:6px;background:var(--bg);" onchange="setSopRemind('+i+',this.value)"><button class="btn-mini" onclick="toggleSopRemind('+i+')" title="开启/关闭到点提醒" style="'+(rm.on?'color:var(--success);border-color:var(--success);':'')+'">'+(rm.on?'&#x2714; 已开启':'&#x25cb; 关闭')+'</button><span class="text-xs" style="color:var(--text-tertiary);">周</span>'+['日','一','二','三','四','五','六'].map((d,di)=>'<span class="sop-day-chip'+(rmDays.indexOf(di)>=0?' on':'')+'" onclick="toggleSopRemindDay('+i+','+di+')" title="周'+d+'是否提醒">'+d+'</span>').join('')+'</div>';const steps=x.steps.map(st=>'<div class="task-item '+(st.done?'completed':'')+'"><div class="task-check '+(st.done?'done':'')+'" onclick="toggleSopStep('+i+',\''+st.id+'\')"></div><div class="task-text">'+st.text+(st.timeMin?'<span class="text-xs" style="color:var(--text-tertiary);"> · '+st.timeMin+'min</span>':'')+'</div><button class="btn btn-danger" onclick="deleteSopStep('+i+',\''+st.id+'\')">&#x2715;</button></div>').join('');return '<div class="knowledge-card"><div class="knowledge-header"><h4>'+(x.icon||'&#x1f4cb;')+' '+x.name+'</h4><div class="flex gap-8"><span class="tag '+(x.scene==='高频'?'tag-blue':'tag-purple')+'">'+x.scene+'</span><button class="btn-mini" onclick="runSop('+i+')" title="今日执行">&#x25b6;</button><button class="btn btn-danger" onclick="deleteSopTemplate('+i+')">&#x2715;</button></div></div>'+(totalT?'<div class="text-xs text-secondary mb-8">共 '+x.steps.length+' 步 · 约 '+totalT+' 分钟</div>':'')+'<div>'+steps+'</div>'+remindRow+'<div class="flex gap-8 mt-8"><input type="text" placeholder="+ 添加步骤..." style="flex:1;font-size:12px;" onkeypress="if(event.key===\'Enter\')addSopStep('+i+',this.value);this.value=\'\';"><input type="number" placeholder="min" style="width:60px;font-size:12px;" id="sop-step-time-'+i+'"></div></div>'}).join('')}
+function addSopTemplate(){const f=document.getElementById('sop-new-tpl');const tx=f.value.trim();if(!tx)return;const t=get('sopTemplates',[]);t.push({id:Date.now().toString(),name:tx,scene:'高频',icon:'&#x1f4cb;',steps:[]});set('sopTemplates',t);f.value='';renderSopList()}
+function deleteSopTemplate(i){const t=get('sopTemplates',[]);t.splice(i,1);set('sopTemplates',t);renderSopList()}
+function addSopStep(i,tx){if(!tx.trim())return;const t=get('sopTemplates',[]);const tm=parseInt(document.getElementById('sop-step-time-'+i).value)||0;t[i].steps.push({id:Date.now().toString(),text:tx.trim(),done:false,timeMin:tm});set('sopTemplates',t);renderSopList()}
+function toggleSopStep(i,id){const t=get('sopTemplates',[]);const st=t[i].steps.find(s=>s.id===id);if(st){st.done=!st.done;if(t[i].steps.every(s=>s.done))t[i].lastRunDate=new Date().toISOString().split('T')[0];set('sopTemplates',t);renderSopList();renderSopRun()}}
+function deleteSopStep(i,id){const t=get('sopTemplates',[]);t[i].steps=t[i].steps.filter(s=>s.id!==id);set('sopTemplates',t);renderSopList()}
+function setSopRemind(i,time){const t=get('sopTemplates',[]);const x=t[i];if(!x)return;x.remind=x.remind||{on:false,time:'',days:[0,1,2,3,4,5,6]};const wasOff=!x.remind.on;x.remind.time=time;if(time&&wasOff)x.remind.on=true;set('sopTemplates',t);renderSopList();if(time)showToast(wasOff?('&#x23f0; 已开启「'+x.name+'」提醒：每天 '+time+' 通知你'):('提醒时间已调整为 '+time))}
+function toggleSopRemind(i){const t=get('sopTemplates',[]);const x=t[i];if(!x)return;x.remind=x.remind||{on:false,time:'',days:[0,1,2,3,4,5,6]};x.remind.on=!x.remind.on;if(x.remind.on&&!x.remind.time)x.remind.time='08:00';set('sopTemplates',t);renderSopList();showToast(x.remind.on?('&#x23f0; 已开启「'+x.name+'」提醒：'+(x.remind.days&&x.remind.days.length?('每周'+x.remind.days.slice().sort().map(d=>'日一二三四五六'[d]).join('、')+' '+x.remind.time):'每天 '+x.remind.time)):'已关闭「'+x.name+'」的提醒')}
+function toggleSopRemindDay(i,d){const t=get('sopTemplates',[]);const x=t[i];if(!x)return;x.remind=x.remind||{on:false,time:'',days:[0,1,2,3,4,5,6]};const ds=x.remind.days||[0,1,2,3,4,5,6];const k=ds.indexOf(d);if(k>=0)ds.splice(k,1);else ds.push(d);x.remind.days=ds;set('sopTemplates',t);renderSopList()}
+// ====== SOP 到点提醒调度 ======
+function checkSopReminders(){const t=get('sopTemplates',[]);const now=new Date();const today=now.toISOString().split('T')[0];const curMin=now.getHours()*60+now.getMinutes();const dow=now.getDay();let fired=get('sopRemindFired',{});if(fired.date!==today)fired={date:today,fired:{}};let changed=false;t.forEach(x=>{const rm=x.remind;if(!rm||!rm.on||!rm.time)return;const days=(rm.days&&rm.days.length)?rm.days:[0,1,2,3,4,5,6];if(days.indexOf(dow)<0)return;if(fired.fired[x.id])return;const pr=rm.time.split(':');if(curMin<(+pr[0])*60+(+pr[1]))return;if(x.lastRunDate===today)return;fired.fired[x.id]=true;changed=true;fireSopNotify(x)});if(changed){set('sopRemindFired',fired);updateReminderBell(generateReminders())}}
+function fireSopNotify(x){const total=x.steps.reduce((s,st)=>s+(st.timeMin||0),0);const body='该执行「'+x.name+'」了'+(x.steps.length?('：共 '+x.steps.length+' 步 · 约 '+total+' 分钟，点击开始今日执行。'):'。');showToast('&#x23f0; '+body,'warning');if(get('notifEnabled',false)&&'Notification' in window&&Notification.permission==='granted'){try{const n=new Notification('\u23f0 '+x.name,{body:body,tag:'sop-'+x.id,icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="80" font-size="80">\u23f0</text></svg>'});n.onclick=function(){window.focus();gotoModule('sop');runSop(get('sopTemplates',[]).findIndex(t2=>t2.id===x.id))}}catch(e){}}}
+function renderSopPresets(){const c=document.getElementById('sop-presets');c.innerHTML=SOP_PRESETS.map((p,i)=>'<div class="trial-card" style="border-left-color:var(--primary);"><div class="flex-between"><h4 style="font-size:14px;">'+p.icon+' '+p.name+'</h4><button class="btn btn-outline btn-sm" onclick="applySopPreset('+i+')">应用</button></div><div class="text-xs text-secondary mt-4">'+p.steps.length+' 步 · 约 '+p.steps.reduce((s,x)=>s+x.timeMin,0)+' 分钟 · '+p.scene+'场景</div></div>').join('')}
+function applySopPreset(i){const p=SOP_PRESETS[i];const t=get('sopTemplates',[]);t.push({id:Date.now().toString(),name:p.name,scene:p.scene,icon:p.icon,steps:p.steps.map((s,k)=>({id:Date.now().toString()+k,text:s.text,done:false,timeMin:s.timeMin})),remind:p.remind?Object.assign({},p.remind,{on:true}):undefined});set('sopTemplates',t);showToast(p.remind?('已导入「'+p.name+'」，并已开启 '+p.remind.time+' 提醒'):('已导入「'+p.name+'」'));renderSopList()}
+function renderSopRun(){const r=get('sopRun',null);const c=document.getElementById('sop-run-area');if(!r){c.innerHTML='<div class="empty-state"><div class="icon">&#x1f501;</div><p>点击任意 SOP 右侧的 ▶ 开始今日执行</p></div>';return}const t=get('sopTemplates',[]);const tpl=t[r.tplIdx];if(!tpl){set('sopRun',null);renderSopRun();return}const done=tpl.steps.filter(s=>s.done).length;const pct=tpl.steps.length>0?Math.round(done/tpl.steps.length*100):0;c.innerHTML='<div class="flex-between mb-12"><h4 style="font-size:14px;">'+tpl.icon+' '+tpl.name+'</h4><div class="flex gap-8"><span class="tag tag-green">'+done+'/'+tpl.steps.length+' · '+pct+'%</span><button class="btn-mini" onclick="resetSopRun()">切换</button></div></div><div class="ratio-bar mb-12"><div class="ratio-learn" style="width:'+pct+'%">已完成</div><div class="ratio-practice" style="width:'+(100-pct)+'%"></div></div>'+(pct===100&&tpl.steps.length>0?'<div class="tip-box tip-success"><strong>&#x1f389; 今日 SOP 执行完毕！</strong>秩序感+1，执行力在低谷期依然稳定。</div>':'')}
+function runSop(i){const t=get('sopTemplates',[]);if(t[i]){t[i].steps.forEach(s=>s.done=false);t[i].lastRunDate=new Date().toISOString().split('T')[0]}set('sopTemplates',t);set('sopRun',{tplIdx:i});renderSopList();renderSopRun()}
+function resetSopRun(){set('sopRun',null);renderSopRun()}
 
 // ====== 复盘中心 ======
 const checklistItems=['我已经计算了自己的时间成本（时薪）','我已建立 3~6 个月的应急储备金','我的收入按 10/20/30/40 进行了分配','我有明确的 3 年「北极星」目标','我有 10 年规划蓝图','我每天用 1-3-5 工作法安排任务','我的学:习比例达到 1:6 以上','我定期复盘（日/周/月）','我的信息摄入中专业知识占比 > 60%','我知道自己当前处于哪个修炼阶段','我有被动收入管道（哪怕很少）','我用投资回报率思维来评估每一项投入'];
@@ -2083,6 +2189,19 @@ function generateReminders(){
   // 9 修炼路径未定
   var ps=get('pathStage');
   if(!ps&&inc>0){reminders.push({id:'path-unset',type:'修炼',typeColor:'badge-purple',priority:'medium',icon:'\u1f6e3',title:'修炼路径未确定',desc:'确定你的修炼阶段（时间换钱/技术换钱/资源换钱），有助于明确发展方向。',action:'path',actionText:'去确定'})}
+  // 10 SOP 到点未执行提醒
+  var soT=get('sopTemplates',[]);
+  var nowD=new Date();var todayStr=nowD.toISOString().split('T')[0];var curMinD=nowD.getHours()*60+nowD.getMinutes();
+  soT.forEach(function(x){
+    var rm=x.remind;if(!rm||!rm.on||!rm.time)return;
+    var days=(rm.days&&rm.days.length)?rm.days:[0,1,2,3,4,5,6];
+    if(days.indexOf(nowD.getDay())<0)return;
+    var pr=rm.time.split(':');var rmMin=(+pr[0])*60+(+pr[1]);
+    if(curMinD<rmMin||x.lastRunDate===todayStr)return;
+    var over=curMinD-rmMin;
+    var overTxt=over>=60?('已过提醒时间 '+Math.floor(over/60)+' 小时'+(over%60?(over%60)+' 分钟':'')):('已过提醒时间 '+over+' 分钟');
+    reminders.push({id:'sop-due-'+x.id,type:'SOP',typeColor:'badge-teal',priority:over>=120?'high':'medium',icon:'\u23f0',title:'SOP 待执行：'+x.name,desc:overTxt+'，共 '+x.steps.length+' 步。'+'固定动作是低谷保护机制——现在开始，执行一个是一个。',action:'sop',actionText:'去执行'});
+  });
   // 过滤已忽略
   var dismissed=get('dismissedReminders',{});
   var filtered=reminders.filter(function(r){
@@ -2092,9 +2211,7 @@ function generateReminders(){
   });
   return filtered;
 }
-function checkAllReminders(){
-  var reminders=generateReminders();
-  var high=reminders.filter(function(r){return r.priority==='high'}).length;
+function updateReminderBell(reminders){
   // 更新铃铛
   var bell=document.getElementById('bell-count');
   if(bell){bell.textContent=reminders.length;bell.className='bell-count'+(reminders.length===0?' zero':'')}
@@ -2103,6 +2220,11 @@ function checkAllReminders(){
   if(navBadge){if(reminders.length>0){navBadge.style.display='inline-block';navBadge.textContent=reminders.length}else{navBadge.style.display='none'}}
   // 铃铛动画
   if(reminders.length>0){var bellEl=document.getElementById('reminder-bell');if(bellEl){bellEl.classList.add('ringing');setTimeout(function(){bellEl.classList.remove('ringing')},600)}}
+}
+function checkAllReminders(){
+  var reminders=generateReminders();
+  var high=reminders.filter(function(r){return r.priority==='high'}).length;
+  updateReminderBell(reminders);
   // 浏览器通知
   var notifSetting=get('notifEnabled',false);
   if(notifSetting&&'Notification' in window&&Notification.permission==='granted'&&reminders.length>0){
@@ -2197,6 +2319,8 @@ autoSnapshot();
 checkAutoBackup();
 updateBackupInfo();
 checkAllReminders();
+checkSopReminders();
+setInterval(checkSopReminders,20000);
 document.getElementById('bk-interval').addEventListener('change',saveBackupSettings);
 </script>
 </body>
