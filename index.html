@@ -776,9 +776,13 @@ async function finishCloudSetup(){
   const s=getBackupSettings();
   s.token=token;
   s.autoSync=true;
+  // 首次配置时清掉无效的旧 Gist ID
+  if(!s.gistId||!/^[a-f0-9]{20,32}$/i.test(s.gistId)||s.gistId==='newgist999')s.gistId='';
   setBackupSettings(s);
   const tokenEl=document.getElementById('cloud-token');
+  const gistEl=document.getElementById('cloud-gist-id');
   if(tokenEl)tokenEl.value=token;
+  if(gistEl)gistEl.value=s.gistId||'';
   showToast('正在开启云同步…');
   const ok=await cloudUpload({silent:true});
   if(ok){
@@ -844,6 +848,7 @@ function setCloudBusy(busy){
   });
 }
 function cloudApiError(res,body){
+  if(!res||res.status===0)return '无法连接 GitHub（网络或浏览器拦截），请检查网络后重试';
   if(res.status===401)return 'Token 无效或已过期，请重新创建并勾选 gist 权限';
   if(res.status===403)return '权限不足或触发限流，请确认 Token 有 gist 权限后重试';
   if(res.status===404)return 'Gist 不存在，请检查 Gist ID 或清空后重新上传';
@@ -862,12 +867,17 @@ function buildCloudCfg(token,gistId,syncedAt){
 }
 function readCloudCreds(){
   const s=getBackupSettings();
+  const setupEl=document.getElementById('cloud-token-setup');
   const tokenEl=document.getElementById('cloud-token');
   const gistEl=document.getElementById('cloud-gist-id');
-  return {
-    token:((tokenEl&&tokenEl.value)||s.token||'').trim(),
-    gistId:((gistEl&&gistEl.value)||s.gistId||'').trim()
-  };
+  const fromSetup=(setupEl&&setupEl.value||'').trim();
+  const fromAdvanced=(tokenEl&&tokenEl.value||'').trim();
+  // 已保存的配置优先，避免隐藏输入框里残留旧 Token 覆盖新 Token
+  const token=(fromSetup||(s.token||'')||fromAdvanced).trim();
+  let gistId=((gistEl&&gistEl.value)||'').trim()||(s.gistId||'').trim();
+  // 过滤自测/无效 Gist ID，避免 PATCH 到不存在的 Gist
+  if(gistId&&(!/^[a-f0-9]{20,32}$/i.test(gistId)||gistId==='newgist999'))gistId='';
+  return {token,gistId};
 }
 async function gistRequest(method,gistId,token,bodyObj){
   const url='https://api.github.com/gists'+(gistId?'/'+gistId:'');
@@ -971,7 +981,18 @@ async function cloudUpload(opts){
       }
     };
     const out=await gistRequest(gistId?'PATCH':'POST',gistId,token,payload);
-    if(!out.res.ok){showToast((silent?'自动上传失败：':'')+cloudApiError(out.res,out.data),'error');return false}
+    if(!out.res.ok){
+      // Gist 不存在时清空 ID 并重试创建
+      if(out.res.status===404&&gistId){
+        gistId='';
+        const s0=getBackupSettings();s0.gistId='';setBackupSettings(s0);
+        const retry=await gistRequest('POST','',token,payload);
+        if(!retry.res.ok){showToast((silent?'自动上传失败：':'')+cloudApiError(retry.res,retry.data),'error');return false}
+        out.res=retry.res;out.data=retry.data;
+      }else{
+        showToast((silent?'自动上传失败：':'')+cloudApiError(out.res,out.data),'error');return false;
+      }
+    }
     const finalId=out.data.id||gistId;
     if(!gistId||finalId!==gistId){
       const fix=await gistRequest('PATCH',finalId,token,{
