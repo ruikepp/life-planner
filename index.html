@@ -365,6 +365,7 @@ input:checked+.toggle-slider:before{transform:translateX(20px)}
 <div class="flex gap-8 flex-wrap mt-12">
 <button class="btn btn-sm btn-primary" id="cloud-copy-link-btn" onclick="copyCloudTransferLink()">复制同步码</button>
 <button class="btn btn-sm btn-outline" id="cloud-sync-now-btn" onclick="syncCloudNow()">立即同步</button><button class="btn btn-sm btn-outline" onclick="testCloudConnection()">测试连接</button>
+<button class="btn btn-sm btn-outline" onclick="changeCloudToken()">更换 Token</button>
 </div>
 <p class="text-xs text-muted mt-8">把同步码发到另一台设备的浏览器打开即可（勿发给他人）。</p>
 <details id="cloud-advanced" class="mt-12" style="border-top:1px dashed var(--border);padding-top:10px">
@@ -713,8 +714,19 @@ function idbGet(key){return new Promise(resolve=>{if(!_idb){resolve(null);return
 function idbSet(key,val){if(!_idb)return;try{const tx=_idb.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put(val,key);tx.onerror=()=>{}}catch(e){}}
 function loadStore(){try{const r=localStorage.getItem(STORE_KEY);store=r?JSON.parse(r):{}}catch(e){store={}}if(Object.keys(store).length===0){ensureIDB().then(()=>idbGet(DB_KEY)).then(d=>{if(d&&Object.keys(d).length>0){store=d;try{localStorage.setItem(STORE_KEY,JSON.stringify(store))}catch(e){}showToast('已从 IndexedDB 自动恢复数据');renderPage('dashboard');renderDashboard()}})}else{ensureIDB()}}
 function saveStore(){try{localStorage.setItem(STORE_KEY,JSON.stringify(store))}catch(e){}if(_idb){idbSet(DB_KEY,store)}else{ensureIDB().then(()=>idbSet(DB_KEY,store))}if(!_cloudSkipAuto){const s=getBackupSettings();s.localUpdatedAt=new Date().toISOString();setBackupSettings(s);scheduleAutoCloudUpload()}}
-function getBackupSettings(){try{const s=JSON.parse(localStorage.getItem(BACKUP_KEY));return s||{interval:7,lastBackup:null,token:'',gistId:'',lastCloudSync:null,autoSync:false,localUpdatedAt:null}}catch(e){return{interval:7,lastBackup:null,token:'',gistId:'',lastCloudSync:null,autoSync:false,localUpdatedAt:null}}}
+function getBackupSettings(){try{const s=JSON.parse(localStorage.getItem(BACKUP_KEY));return s||{interval:7,lastBackup:null,token:'',gistId:'',lastCloudSync:null,autoSync:false,localUpdatedAt:null,cloudSetupComplete:false}}catch(e){return{interval:7,lastBackup:null,token:'',gistId:'',lastCloudSync:null,autoSync:false,localUpdatedAt:null,cloudSetupComplete:false}}}
 function setBackupSettings(s){localStorage.setItem(BACKUP_KEY,JSON.stringify(s))}
+function migrateBackupSettings(){
+  const s=getBackupSettings();
+  let dirty=false;
+  if(s.token==='bad_token'||(s.token&&s.token.length<20)){s.token='';s.cloudSetupComplete=false;dirty=true}
+  if(s.gistId==='newgist999'){s.gistId='';dirty=true}
+  if(s.gistId&&!/^[a-f0-9]{20,32}$/i.test(s.gistId)){s.gistId='';dirty=true}
+  if((s.lastCloudSync||s.gistId)&&s.token&&s.token.length>=20&&!s.cloudSetupComplete){s.cloudSetupComplete=true;dirty=true}
+  if(s.cloudSetupComplete&&(!s.token||s.token.length<20)){s.cloudSetupComplete=false;dirty=true}
+  if(dirty)setBackupSettings(s);
+  return s;
+}
 function checkAutoBackup(){const s=getBackupSettings();if(!s.interval||s.interval===0)return;const now=Date.now();const last=s.lastBackup?new Date(s.lastBackup).getTime():0;const days=Math.floor((now-last)/86400000);if(days>=s.interval){showToast('已有'+(days>999?'很久':days)+'天未导出备份文件，建议点击左下角「备份」导出','warning')}}
 function openBackupSettings(){
   const s=getBackupSettings();
@@ -730,7 +742,7 @@ function updateCloudPanels(s){
   s=s||getBackupSettings();
   const setup=document.getElementById('cloud-setup-panel');
   const ready=document.getElementById('cloud-ready-panel');
-  const configured=!!(s.token&&s.token.length>=20);
+  const configured=!!(s.cloudSetupComplete&&s.token&&s.token.length>=20);
   if(setup)setup.classList.toggle('hidden',configured);
   if(ready)ready.classList.toggle('hidden',!configured);
   const tokenEl=document.getElementById('cloud-token');
@@ -759,7 +771,7 @@ function updateCloudPanels(s){
 function saveBackupSettings(){const s=getBackupSettings();s.interval=parseInt(document.getElementById('bk-interval').value);setBackupSettings(s);showToast('备份设置已保存');updateBackupInfo()}
 function saveCloudSettings(){
   const s=getBackupSettings();
-  s.token=(document.getElementById('cloud-token').value||'').trim();
+  s.token=sanitizeToken(document.getElementById('cloud-token').value)||s.token;
   s.gistId=(document.getElementById('cloud-gist-id').value||'').trim();
   const autoEl=document.getElementById('cloud-auto-sync');
   if(autoEl)s.autoSync=!!autoEl.checked;
@@ -767,6 +779,20 @@ function saveCloudSettings(){
   showToast('云端配置已保存');
   updateCloudPanels(s);
   if(s.autoSync&&s.token)scheduleAutoCloudUpload(true);
+}
+function changeCloudToken(){
+  const s=getBackupSettings();
+  s.cloudSetupComplete=false;
+  s.token='';
+  s.autoSync=false;
+  setBackupSettings(s);
+  const setupToken=document.getElementById('cloud-token-setup');
+  const tokenEl=document.getElementById('cloud-token');
+  if(setupToken)setupToken.value='';
+  if(tokenEl)tokenEl.value='';
+  showToast('请粘贴新 Token 后点「测试连接」或「开启自动云同步」');
+  updateCloudPanels(s);
+  setTimeout(function(){if(setupToken)setupToken.focus()},100);
 }
 async function finishCloudSetup(){
   const setupToken=document.getElementById('cloud-token-setup');
@@ -786,9 +812,15 @@ async function finishCloudSetup(){
   showToast('正在开启云同步…');
   const ok=await cloudUpload({silent:true});
   if(ok){
+    const s2=getBackupSettings();
+    s2.cloudSetupComplete=true;
+    setBackupSettings(s2);
     showToast('云同步已开启，平时不用再管 Token');
     updateCloudPanels();
   }else{
+    const s2=getBackupSettings();
+    s2.cloudSetupComplete=false;
+    setBackupSettings(s2);
     updateCloudPanels();
   }
 }
@@ -796,18 +828,24 @@ function resetCloudSetup(){
   if(!confirm('断开后本机将忘记 Token / Gist，云端数据仍保留。确定？'))return;
   clearTimeout(_cloudSyncTimer);_cloudSyncTimer=null;
   const s=getBackupSettings();
-  s.token='';s.gistId='';s.autoSync=false;s.lastCloudSync=null;
+  s.token='';s.gistId='';s.autoSync=false;s.lastCloudSync=null;s.cloudSetupComplete=false;
   setBackupSettings(s);
+  const setupToken=document.getElementById('cloud-token-setup');
+  const tokenEl=document.getElementById('cloud-token');
+  const gistEl=document.getElementById('cloud-gist-id');
+  if(setupToken)setupToken.value='';
+  if(tokenEl)tokenEl.value='';
+  if(gistEl)gistEl.value='';
   showToast('已断开云同步');
   updateCloudPanels(s);
 }
 async function syncCloudNow(){
-  const s=getBackupSettings();
-  if(!s.token){showToast('请先完成云同步配置','warning');return}
+  const creds=readCloudCreds();
+  if(!creds.token){showToast('请先完成云同步配置','warning');return}
   showToast('正在同步…');
-  if(!s.gistId){await cloudUpload({silent:true});updateCloudPanels();return}
+  if(!creds.gistId){await cloudUpload({silent:true});updateCloudPanels();return}
   try{
-    const out=await gistRequest('GET',s.gistId,s.token);
+    const out=await gistRequest('GET',creds.gistId,creds.token);
     if(!out.res.ok){showToast(cloudApiError(out.res,out.data),'error');return}
     const data=out.data;const files=data.files||{};
     let cloudUpdated=ts(data.updated_at);
@@ -826,11 +864,12 @@ function saveCloudAutoSync(){
   const s=getBackupSettings();
   const autoEl=document.getElementById('cloud-auto-sync');
   s.autoSync=!!(autoEl&&autoEl.checked);
-  s.token=(document.getElementById('cloud-token').value||'').trim()||s.token;
-  s.gistId=(document.getElementById('cloud-gist-id').value||'').trim()||s.gistId;
+  const creds=readCloudCreds();
+  if(creds.token)s.token=creds.token;
+  if(creds.gistId)s.gistId=creds.gistId;
   setBackupSettings(s);
   if(s.autoSync){
-    if(!s.token){showToast('请先完成首次配置','warning');s.autoSync=false;setBackupSettings(s);if(autoEl)autoEl.checked=false;updateCloudPanels(s);return}
+    if(!s.token||!s.cloudSetupComplete){showToast('请先完成首次配置并通过测试','warning');s.autoSync=false;setBackupSettings(s);if(autoEl)autoEl.checked=false;updateCloudPanels(s);return}
     showToast('已开启自动同步');
     scheduleAutoCloudUpload(true);
   }else{
@@ -866,6 +905,10 @@ function buildCloudCfg(token,gistId,syncedAt){
   },null,2);
 }
 function sanitizeToken(t){return String(t||'').replace(/[^\x21-\x7E]/g,'').trim()}
+function tokenHint(token){
+  if(!token)return '';
+  return '（长度 '+token.length+'，前缀 '+token.slice(0,Math.min(4,token.length))+'…）';
+}
 function readCloudCreds(){
   const s=getBackupSettings();
   const setupEl=document.getElementById('cloud-token-setup');
@@ -873,17 +916,15 @@ function readCloudCreds(){
   const gistEl=document.getElementById('cloud-gist-id');
   const fromSetup=sanitizeToken(setupEl&&setupEl.value);
   const fromAdvanced=sanitizeToken(tokenEl&&tokenEl.value);
-  const token=sanitizeToken(fromSetup||(s.token||'')||fromAdvanced);
+  // 输入框优先：用户刚粘贴的新 Token 必须覆盖 localStorage 里的旧 Token
+  const token=fromSetup||fromAdvanced||sanitizeToken(s.token||'');
   let gistId=((gistEl&&gistEl.value)||'').trim()||(s.gistId||'').trim();
   if(gistId&&(!/^[a-f0-9]{20,32}$/i.test(gistId)||gistId==='newgist999'))gistId='';
-  return {token,gistId};
+  return {token,gistId,fromInput:!!(fromSetup||fromAdvanced)};
 }
 function githubAuthHeaders(token,withBody){
-  const h={
-    Authorization:'Bearer '+token,
-    Accept:'application/vnd.github+json',
-    'X-GitHub-Api-Version':'2022-11-28'
-  };
+  const auth=token.startsWith('ghp_')?'token '+token:'Bearer '+token;
+  const h={Authorization:auth,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
   if(withBody)h['Content-Type']='application/json';
   return h;
 }
@@ -891,24 +932,36 @@ async function githubFetch(url,method,token,bodyObj){
   const opts={method:method,headers:githubAuthHeaders(token,!!bodyObj)};
   if(bodyObj)opts.body=JSON.stringify(bodyObj);
   let res=await fetch(url,opts);
-  if(res.status===401&&token.startsWith('ghp_')){
-    opts.headers=Object.assign({},opts.headers,{Authorization:'token '+token});
-    res=await fetch(url,opts);
+  if(res.status===401){
+    const alt=token.startsWith('ghp_')?'Bearer '+token:'token '+token;
+    if(opts.headers.Authorization!==alt){
+      opts.headers=Object.assign({},opts.headers,{Authorization:alt});
+      res=await fetch(url,opts);
+    }
   }
   let data=null;try{data=await res.json()}catch(e){}
   return {res,data};
 }
 async function testCloudConnection(){
-  const {token}=readCloudCreds();
+  const {token,fromInput}=readCloudCreds();
   if(!token){showToast('请先粘贴 Token','warning');return}
   showToast('正在测试 GitHub 连接…');
   try{
     const out=await githubFetch('https://api.github.com/user','GET',token);
     if(!out.res.ok){
-      showToast('连接失败：'+cloudApiError(out.res,out.data)+(out.data&&out.data.message?'（'+out.data.message+'）':''),'error');
+      let msg='连接失败：'+cloudApiError(out.res,out.data)+tokenHint(token);
+      if(out.res.status===401&&!fromInput)msg+='。本机可能仍存旧 Token，请点「更换 Token」后重新粘贴';
+      if(out.data&&out.data.message)msg+='（'+out.data.message+'）';
+      showToast(msg,'error');
       return;
     }
-    showToast('连接成功：'+out.data.login+'，可以开启云同步');
+    const s=getBackupSettings();
+    s.token=token;
+    s.cloudSetupComplete=!!(s.gistId||s.lastCloudSync);
+    setBackupSettings(s);
+    const tokenEl=document.getElementById('cloud-token');
+    if(tokenEl)tokenEl.value=token;
+    showToast('连接成功：'+out.data.login+tokenHint(token));
   }catch(e){
     showToast('连接失败：浏览器无法访问 api.github.com，请检查网络/代理','error');
   }
@@ -971,6 +1024,7 @@ function applyCloudTransferHash(){
   if(token)s.token=token;
   if(gistId)s.gistId=gistId;
   if(obj.a===1||obj.a===true||obj.autoSync)s.autoSync=true;
+  if(s.token&&s.gistId)s.cloudSetupComplete=true;
   setBackupSettings(s);
   try{history.replaceState(null,'',location.pathname+location.search)}catch(e){location.hash=''}
   showToast('已从同步码导入配置'+(s.autoSync?'（已开自动同步）':''));
@@ -979,7 +1033,7 @@ function applyCloudTransferHash(){
 }
 function scheduleAutoCloudUpload(immediate){
   const s=getBackupSettings();
-  if(!s.autoSync||!s.token)return;
+  if(!s.autoSync||!s.token||!s.cloudSetupComplete)return;
   clearTimeout(_cloudSyncTimer);
   _cloudSyncTimer=setTimeout(function(){cloudUpload({silent:true})},immediate?800:5000);
 }
@@ -1031,6 +1085,7 @@ async function cloudUpload(opts){
     s.gistId=finalId;
     s.lastCloudSync=syncedAt;
     s.lastBackup=syncedAt;
+    s.cloudSetupComplete=true;
     if(!s.localUpdatedAt)s.localUpdatedAt=syncedAt;
     setBackupSettings(s);
     const gistInput=document.getElementById('cloud-gist-id');
@@ -1123,14 +1178,16 @@ async function cloudDownload(opts){
 }
 async function autoCloudSyncOnBoot(){
   const s=getBackupSettings();
-  if(!s.autoSync||!s.token)return;
-  if(!s.gistId){
+  if(!s.autoSync||!s.cloudSetupComplete)return;
+  const creds=readCloudCreds();
+  if(!creds.token)return;
+  if(!creds.gistId){
     showToast('自动同步：首次上传到云端…');
     await cloudUpload({silent:true});
     return;
   }
   try{
-    const out=await gistRequest('GET',s.gistId,s.token);
+    const out=await gistRequest('GET',creds.gistId,creds.token);
     if(!out.res.ok){
       if(out.res.status===401)showToast('自动同步失败：Token 无效或已过期','error');
       else showToast('自动同步失败：'+cloudApiError(out.res,out.data),'error');
@@ -2785,6 +2842,7 @@ function toggleNotifications(){
 
 // ====== 初始化 ======
 loadStore();
+migrateBackupSettings();
 applyCloudTransferHash();
 renderPage('dashboard');
 renderDashboard();
