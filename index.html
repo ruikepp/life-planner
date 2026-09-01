@@ -854,7 +854,8 @@ async function syncCloudNow(){
       const cfgRaw=await readGistFileContent(cfgFile);
       if(cfgRaw){try{const cfg=JSON.parse(cfgRaw);const t=ts(cfg.dataUpdatedAt||cfg.syncedAt);if(t>cloudUpdated)cloudUpdated=t}catch(e){}}
     }
-    const localUpdated=Math.max(ts(s.localUpdatedAt),ts(s.lastCloudSync));
+    const bs=getBackupSettings();
+    const localUpdated=Math.max(ts(bs.localUpdatedAt),ts(bs.lastCloudSync));
     if(cloudUpdated>localUpdated+2000)await cloudDownload({silent:true,force:true});
     else await cloudUpload({silent:true});
     updateCloudPanels();
