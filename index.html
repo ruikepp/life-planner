@@ -349,7 +349,37 @@ input:checked+.toggle-slider:before{transform:translateX(20px)}
 <div class="modal-overlay" id="review-modal"><div class="modal"><h3 id="review-modal-title">复盘</h3><div id="review-modal-content"></div><div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveReviewRecord()">保存复盘</button></div></div></div>
 <div class="modal-overlay" id="decade-diary-modal"><div class="modal"><h3>十年日记</h3><div><label>今天的日期</label><input type="date" id="dd-date"><label class="mt-12">今天做了什么重要决策？</label><textarea id="dd-decision" rows="2" placeholder="记录当下重要的决定..."></textarea><label class="mt-12">现在的心情和感受</label><textarea id="dd-feeling" rows="2" placeholder="此时此刻的感受..."></textarea><label class="mt-12">给10年后的自己留句话</label><textarea id="dd-message" rows="2" placeholder="站在未来回看今天..."></textarea></div><div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveDecadeDiary()">保存</button></div></div></div>
 <div class="modal-overlay" id="trial-modal"><div class="modal"><h3>记录一次试错</h3><div><label>试错的领域/方向</label><input type="text" id="tr-field" placeholder="如：副业尝试、新技能学习、社交方式..."><label class="mt-12">你的假设是什么？</label><textarea id="tr-hypothesis" rows="2" placeholder="你预期会发生什么？"></textarea><label class="mt-12">实际结果</label><textarea id="tr-result" rows="2" placeholder="实际发生了什么？"></textarea><label class="mt-12">学到了什么？</label><textarea id="tr-lesson" rows="2" placeholder="这次试错教会了你什么？"></textarea><label class="mt-12">状态</label><select id="tr-status"><option value="fail">失败 - 没有达到预期</option><option value="learn">学习中 - 已复盘，待验证</option><option value="success">已转化 - 成为经验</option></select></div><div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveTrial()">保存</button></div></div></div>
-<div class="modal-overlay" id="backup-modal"><div class="modal" style="max-width:560px"><h3>&#x1f4be; 数据备份设置</h3><div><div class="card" style="box-shadow:none;border:1px solid var(--border);margin-bottom:14px"><label>自动备份提醒频率</label><select id="bk-interval" class="mt-8"><option value="0">关闭提醒</option><option value="1">每天提醒</option><option value="7">每周提醒</option><option value="30">每月提醒</option></select><p class="text-xs text-muted mt-8">超过设定时间未导出备份时，打开应用会弹出提醒。</p></div><div class="card" style="box-shadow:none;border:1px solid var(--border);margin-bottom:14px"><div class="flex-between"><span class="text-sm text-secondary">上次本地备份</span><span id="bk-last" class="text-sm font-bold">从未备份</span></div><div class="flex-between mt-8"><span class="text-sm text-secondary">IndexedDB 双重存储</span><span id="bk-idb" class="tag tag-green">检测中...</span></div><div class="flex-between mt-8"><span class="text-sm text-secondary">数据条目数</span><span id="bk-count" class="text-sm font-bold">0</span></div></div><div class="card" style="box-shadow:none;border:1px solid var(--border);margin-bottom:14px"><div class="card-title" style="margin-bottom:10px">&#x2601; 云端同步 <span class="badge badge-blue">GitHub Gist</span></div><div class="flex-between mb-8"><span class="text-sm text-secondary">配置状态</span><span id="cloud-status" class="tag tag-gray">未配置</span></div><div class="flex-between mb-8"><span class="text-sm text-secondary">上次云端同步</span><span id="cloud-last" class="text-sm font-bold">从未同步</span></div><div class="flex-between mb-8"><span class="text-sm text-secondary">Gist</span><span id="cloud-gist-link" class="text-sm text-muted">—</span></div><div class="flex-between mt-8 mb-8" style="align-items:center"><div><div class="text-sm font-bold">自动云端同步</div><p class="text-xs text-muted mt-4">开启后：本地修改约 5 秒自动上传；打开应用时自动对齐云端（云端更新则恢复）</p></div><label class="toggle-switch" title="自动同步"><input type="checkbox" id="cloud-auto-sync" onchange="saveCloudAutoSync()"><span class="toggle-slider"></span></label></div><div><label>GitHub Token</label><input type="password" id="cloud-token" class="mt-4" placeholder="ghp_... 或 github_pat_..." autocomplete="off"><p class="text-xs text-muted mt-4">仅需 gist 权限。Classic Token 勾选 gist；Fine-grained 选 Account permissions → Gists: Read and write。<a href="https://github.com/settings/tokens" target="_blank" rel="noopener" style="color:var(--primary)">创建 Token &rarr;</a></p></div><div class="mt-12"><label>Gist ID（可选）</label><input type="text" id="cloud-gist-id" class="mt-4" placeholder="首次上传自动创建；换机时粘贴已有 ID"><p class="text-xs text-muted mt-4">上传时会把<strong>业务数据 + Token + Gist ID</strong>一并写入你的<strong>私有</strong> Gist。业务「导出」JSON 仍不含 Token。</p></div><div class="flex gap-8 flex-wrap mt-12"><button class="btn btn-sm btn-outline" id="cloud-save-btn" onclick="saveCloudSettings()">保存配置</button><button class="btn btn-sm btn-primary" id="cloud-upload-btn" onclick="cloudUpload()">上传到云端</button><button class="btn btn-sm btn-outline" id="cloud-download-btn" onclick="cloudDownload()">从云端恢复</button><button class="btn btn-sm btn-outline" id="cloud-copy-link-btn" onclick="copyCloudTransferLink()">复制换机链接</button></div><p class="text-xs text-muted mt-8">换机链接会带上 Token 与 Gist ID，另一台浏览器打开后自动填入并可自动同步；请勿发给他人。</p></div><div class="tip-box"><strong>四层保护说明：</strong><br>1. localStorage — 日常存储，关闭浏览器不丢<br>2. IndexedDB — 双重备份，清缓存时自动恢复<br>3. 文件导出 — 换浏览器/换电脑时用<br>4. GitHub Gist — 云端备份；开启自动同步后可自动上传/恢复</div></div><div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">关闭</button><button class="btn btn-primary" onclick="doBackupNow()">&#x2b07; 立即本地备份</button></div></div></div>
+<div class="modal-overlay" id="backup-modal"><div class="modal" style="max-width:560px"><h3>&#x1f4be; 数据备份设置</h3><div><div class="card" style="box-shadow:none;border:1px solid var(--border);margin-bottom:14px"><label>自动备份提醒频率</label><select id="bk-interval" class="mt-8"><option value="0">关闭提醒</option><option value="1">每天提醒</option><option value="7">每周提醒</option><option value="30">每月提醒</option></select><p class="text-xs text-muted mt-8">超过设定时间未导出备份时，打开应用会弹出提醒。</p></div><div class="card" style="box-shadow:none;border:1px solid var(--border);margin-bottom:14px"><div class="flex-between"><span class="text-sm text-secondary">上次本地备份</span><span id="bk-last" class="text-sm font-bold">从未备份</span></div><div class="flex-between mt-8"><span class="text-sm text-secondary">IndexedDB 双重存储</span><span id="bk-idb" class="tag tag-green">检测中...</span></div><div class="flex-between mt-8"><span class="text-sm text-secondary">数据条目数</span><span id="bk-count" class="text-sm font-bold">0</span></div></div><div class="card" style="box-shadow:none;border:1px solid var(--border);margin-bottom:14px"><div class="card-title" style="margin-bottom:10px">&#x2601; 云端同步 <span class="badge badge-blue">一键</span></div>
+<div id="cloud-setup-panel">
+<p class="text-sm text-secondary mb-8">第一次配置：粘贴一次 GitHub Token，之后平时<strong>不用再看 Token / ID</strong>。</p>
+<label>GitHub Token（仅首次）</label>
+<input type="password" id="cloud-token-setup" class="mt-4" placeholder="ghp_... 粘贴后点下方按钮" autocomplete="off">
+<p class="text-xs text-muted mt-4">Classic Token 勾选 <strong>gist</strong> 权限即可。<a href="https://github.com/settings/tokens" target="_blank" rel="noopener" style="color:var(--primary)">创建 Token &rarr;</a></p>
+<div class="mt-12"><button class="btn btn-primary" id="cloud-setup-btn" onclick="finishCloudSetup()">开启自动云同步</button></div>
+<p class="text-xs text-muted mt-8">换设备时用「同步码」，不必再手动填 ID。</p>
+</div>
+<div id="cloud-ready-panel" class="hidden">
+<div class="flex-between mb-8"><span class="text-sm text-secondary">同步状态</span><span id="cloud-status" class="tag tag-gray">未配置</span></div>
+<div class="flex-between mb-8"><span class="text-sm text-secondary">上次同步</span><span id="cloud-last" class="text-sm font-bold">从未同步</span></div>
+<div class="flex-between mt-8 mb-8" style="align-items:center"><div><div class="text-sm font-bold">自动云端同步</div><p class="text-xs text-muted mt-4">改数据约 5 秒自动上传；打开应用自动对齐云端</p></div><label class="toggle-switch" title="自动同步"><input type="checkbox" id="cloud-auto-sync" onchange="saveCloudAutoSync()"><span class="toggle-slider"></span></label></div>
+<div class="flex gap-8 flex-wrap mt-12">
+<button class="btn btn-sm btn-primary" id="cloud-copy-link-btn" onclick="copyCloudTransferLink()">复制同步码</button>
+<button class="btn btn-sm btn-outline" id="cloud-sync-now-btn" onclick="syncCloudNow()">立即同步</button>
+</div>
+<p class="text-xs text-muted mt-8">把同步码发到另一台设备的浏览器打开即可（勿发给他人）。</p>
+<details id="cloud-advanced" class="mt-12" style="border-top:1px dashed var(--border);padding-top:10px">
+<summary class="text-sm text-secondary" style="cursor:pointer;user-select:none">高级设置（Token / Gist ID，一般不用打开）</summary>
+<div class="mt-12"><label>GitHub Token</label><input type="password" id="cloud-token" class="mt-4" placeholder="ghp_..." autocomplete="off"></div>
+<div class="mt-12"><label>Gist ID</label><input type="text" id="cloud-gist-id" class="mt-4" placeholder="自动生成"><p class="text-xs text-muted mt-4" id="cloud-gist-link">—</p></div>
+<div class="flex gap-8 flex-wrap mt-12">
+<button class="btn btn-sm btn-outline" id="cloud-save-btn" onclick="saveCloudSettings()">保存</button>
+<button class="btn btn-sm btn-outline" id="cloud-upload-btn" onclick="cloudUpload()">手动上传</button>
+<button class="btn btn-sm btn-outline" id="cloud-download-btn" onclick="cloudDownload()">手动恢复</button>
+<button class="btn btn-sm btn-danger" onclick="resetCloudSetup()">断开云同步</button>
+</div>
+</details>
+</div>
+</div><div class="tip-box"><strong>四层保护说明：</strong><br>1. localStorage — 日常存储，关闭浏览器不丢<br>2. IndexedDB — 双重备份，清缓存时自动恢复<br>3. 文件导出 — 换浏览器/换电脑时用<br>4. 云端同步 — 首次贴一次 Token，之后用同步码换设备</div></div><div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">关闭</button><button class="btn btn-primary" onclick="doBackupNow()">&#x2b07; 立即本地备份</button></div></div></div>
 <div class="toast-container" id="toast-container"></div>
 <div class="modal-overlay" id="decision-modal"><div class="modal"><h3>&#x1f4dd; 记录一个决策</h3><div><label>决策标题</label><input type="text" id="dec-title" placeholder="如：决定从技术转向管理方向"><label class="mt-12">日期</label><input type="date" id="dec-date"><label class="mt-12">背景（当时的情况）</label><textarea id="dec-context" rows="2" placeholder="促使你做这个决定的外部环境和内在动机..."></textarea><label class="mt-12">你的理由</label><textarea id="dec-reasoning" rows="2" placeholder="为什么这样决定而不是那样？"></textarea><label class="mt-12">预期结果</label><textarea id="dec-expected" rows="2" placeholder="你预期这个决定会带来什么改变？多久能看到效果？"></textarea><label class="mt-12">计划复盘日期</label><input type="date" id="dec-review-date"></div><div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveDecision()">保存决策</button></div></div></div>
 <div class="modal-overlay" id="milestone-modal"><div class="modal"><h3>&#x1f3c1; 添加里程碑</h3><div><label>里程碑标题</label><input type="text" id="ms-title" placeholder="如：月收入突破2万"><label class="mt-12">描述（可选）</label><textarea id="ms-desc" rows="2" placeholder="这个里程碑代表什么意义..."></textarea><label class="mt-12">目标达成日期</label><input type="date" id="ms-deadline"><label class="mt-12">初始进度 (%)</label><input type="number" id="ms-progress" value="0" min="0" max="100"></div><div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveMilestone()">保存</button></div></div></div>
@@ -693,19 +723,38 @@ function openBackupSettings(){
   document.getElementById('bk-idb').textContent=_idb?'已启用':'不支持';
   document.getElementById('bk-idb').className=_idb?'tag tag-green':'tag tag-red';
   document.getElementById('bk-count').textContent=Object.keys(store).length;
-  document.getElementById('cloud-token').value=s.token||'';
-  document.getElementById('cloud-gist-id').value=s.gistId||'';
-  document.getElementById('cloud-last').textContent=s.lastCloudSync?new Date(s.lastCloudSync).toLocaleString('zh-CN'):'从未同步';
-  const autoEl=document.getElementById('cloud-auto-sync');if(autoEl)autoEl.checked=!!s.autoSync;
-  const statusEl=document.getElementById('cloud-status');
-  if(s.autoSync&&s.token&&s.gistId){statusEl.textContent='自动同步中';statusEl.className='tag tag-green'}
-  else if(s.token&&s.gistId){statusEl.textContent='已就绪';statusEl.className='tag tag-green'}
-  else if(s.token){statusEl.textContent='已配置 Token';statusEl.className='tag tag-blue'}
-  else{statusEl.textContent='未配置';statusEl.className='tag tag-gray'}
-  const linkEl=document.getElementById('cloud-gist-link');
-  if(s.gistId){linkEl.innerHTML='<a href="https://gist.github.com/'+s.gistId+'" target="_blank" rel="noopener" style="color:var(--primary);font-size:12px">'+(s.gistId.length>12?s.gistId.slice(0,8)+'…':s.gistId)+'</a>'}
-  else{linkEl.textContent='—';linkEl.className='text-sm text-muted'}
+  updateCloudPanels(s);
   document.getElementById('backup-modal').classList.add('show')
+}
+function updateCloudPanels(s){
+  s=s||getBackupSettings();
+  const setup=document.getElementById('cloud-setup-panel');
+  const ready=document.getElementById('cloud-ready-panel');
+  const configured=!!(s.token&&s.token.length>=20);
+  if(setup)setup.classList.toggle('hidden',configured);
+  if(ready)ready.classList.toggle('hidden',!configured);
+  const tokenEl=document.getElementById('cloud-token');
+  const gistEl=document.getElementById('cloud-gist-id');
+  const setupToken=document.getElementById('cloud-token-setup');
+  if(tokenEl)tokenEl.value=s.token||'';
+  if(gistEl)gistEl.value=s.gistId||'';
+  if(setupToken&&!configured)setupToken.value='';
+  const lastEl=document.getElementById('cloud-last');
+  if(lastEl)lastEl.textContent=s.lastCloudSync?new Date(s.lastCloudSync).toLocaleString('zh-CN'):'从未同步';
+  const autoEl=document.getElementById('cloud-auto-sync');
+  if(autoEl)autoEl.checked=!!s.autoSync;
+  const statusEl=document.getElementById('cloud-status');
+  if(statusEl){
+    if(s.autoSync&&s.token&&s.gistId){statusEl.textContent='自动同步中';statusEl.className='tag tag-green'}
+    else if(s.token&&s.gistId){statusEl.textContent='已就绪';statusEl.className='tag tag-green'}
+    else if(s.token){statusEl.textContent='待首次同步';statusEl.className='tag tag-blue'}
+    else{statusEl.textContent='未配置';statusEl.className='tag tag-gray'}
+  }
+  const linkEl=document.getElementById('cloud-gist-link');
+  if(linkEl){
+    if(s.gistId){linkEl.innerHTML='Gist：<a href="https://gist.github.com/'+s.gistId+'" target="_blank" rel="noopener" style="color:var(--primary)">'+(s.gistId.length>12?s.gistId.slice(0,8)+'…':s.gistId)+'</a>'}
+    else{linkEl.textContent='Gist ID 将在首次同步后自动生成';linkEl.className='text-xs text-muted mt-4'}
+  }
 }
 function saveBackupSettings(){const s=getBackupSettings();s.interval=parseInt(document.getElementById('bk-interval').value);setBackupSettings(s);showToast('备份设置已保存');updateBackupInfo()}
 function saveCloudSettings(){
@@ -716,8 +765,58 @@ function saveCloudSettings(){
   if(autoEl)s.autoSync=!!autoEl.checked;
   setBackupSettings(s);
   showToast('云端配置已保存');
-  openBackupSettings();
+  updateCloudPanels(s);
   if(s.autoSync&&s.token)scheduleAutoCloudUpload(true);
+}
+async function finishCloudSetup(){
+  const setupToken=document.getElementById('cloud-token-setup');
+  const token=((setupToken&&setupToken.value)||'').trim();
+  if(!token){showToast('请粘贴 GitHub Token','warning');return}
+  if(token.length<20){showToast('Token 看起来太短，请粘贴完整 Token','warning');return}
+  const s=getBackupSettings();
+  s.token=token;
+  s.autoSync=true;
+  setBackupSettings(s);
+  const tokenEl=document.getElementById('cloud-token');
+  if(tokenEl)tokenEl.value=token;
+  showToast('正在开启云同步…');
+  const ok=await cloudUpload({silent:true});
+  if(ok){
+    showToast('云同步已开启，平时不用再管 Token');
+    updateCloudPanels();
+  }else{
+    updateCloudPanels();
+  }
+}
+function resetCloudSetup(){
+  if(!confirm('断开后本机将忘记 Token / Gist，云端数据仍保留。确定？'))return;
+  clearTimeout(_cloudSyncTimer);_cloudSyncTimer=null;
+  const s=getBackupSettings();
+  s.token='';s.gistId='';s.autoSync=false;s.lastCloudSync=null;
+  setBackupSettings(s);
+  showToast('已断开云同步');
+  updateCloudPanels(s);
+}
+async function syncCloudNow(){
+  const s=getBackupSettings();
+  if(!s.token){showToast('请先完成云同步配置','warning');return}
+  showToast('正在同步…');
+  if(!s.gistId){await cloudUpload({silent:true});updateCloudPanels();return}
+  try{
+    const out=await gistRequest('GET',s.gistId,s.token);
+    if(!out.res.ok){showToast(cloudApiError(out.res,out.data),'error');return}
+    const data=out.data;const files=data.files||{};
+    let cloudUpdated=ts(data.updated_at);
+    const cfgFile=files[CLOUD_CFG_FILE];
+    if(cfgFile){
+      const cfgRaw=await readGistFileContent(cfgFile);
+      if(cfgRaw){try{const cfg=JSON.parse(cfgRaw);const t=ts(cfg.dataUpdatedAt||cfg.syncedAt);if(t>cloudUpdated)cloudUpdated=t}catch(e){}}
+    }
+    const localUpdated=Math.max(ts(s.localUpdatedAt),ts(s.lastCloudSync));
+    if(cloudUpdated>localUpdated+2000)await cloudDownload({silent:true,force:true});
+    else await cloudUpload({silent:true});
+    updateCloudPanels();
+  }catch(e){showToast('同步失败：网络错误','error')}
 }
 function saveCloudAutoSync(){
   const s=getBackupSettings();
@@ -727,20 +826,20 @@ function saveCloudAutoSync(){
   s.gistId=(document.getElementById('cloud-gist-id').value||'').trim()||s.gistId;
   setBackupSettings(s);
   if(s.autoSync){
-    if(!s.token){showToast('请先填写 GitHub Token 再开启自动同步','warning');s.autoSync=false;setBackupSettings(s);if(autoEl)autoEl.checked=false;return}
+    if(!s.token){showToast('请先完成首次配置','warning');s.autoSync=false;setBackupSettings(s);if(autoEl)autoEl.checked=false;updateCloudPanels(s);return}
     showToast('已开启自动同步');
     scheduleAutoCloudUpload(true);
   }else{
     clearTimeout(_cloudSyncTimer);_cloudSyncTimer=null;
     showToast('已关闭自动同步');
   }
-  openBackupSettings();
+  updateCloudPanels(s);
 }
 const CLOUD_GIST_FILE='life-planner-data.json';
 const CLOUD_CFG_FILE='life-planner-cloud.json';
 let _cloudSyncTimer=null,_cloudSyncing=false,_cloudSkipAuto=false;
 function setCloudBusy(busy){
-  ['cloud-upload-btn','cloud-download-btn','cloud-save-btn','cloud-copy-link-btn'].forEach(id=>{
+  ['cloud-upload-btn','cloud-download-btn','cloud-save-btn','cloud-copy-link-btn','cloud-setup-btn','cloud-sync-now-btn'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.disabled=!!busy;
   });
 }
@@ -814,16 +913,16 @@ function buildCloudTransferLink(token,gistId){
 async function copyCloudTransferLink(){
   const creds=readCloudCreds();
   const token=creds.token,gistId=creds.gistId;
-  if(!token||!gistId){showToast('请先填写 Token 和 Gist ID（可先上传一次）','warning');return}
+  if(!token||!gistId){showToast('请先开启云同步（完成首次配置）','warning');return}
   const link=buildCloudTransferLink(token,gistId);
   try{
     if(navigator.clipboard&&navigator.clipboard.writeText)await navigator.clipboard.writeText(link);
     else{
       const ta=document.createElement('textarea');ta.value=link;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
     }
-    showToast('换机链接已复制，另一台浏览器打开即可自动填入');
+    showToast('同步码已复制，另一台浏览器打开即可');
   }catch(e){
-    prompt('复制以下换机链接：',link);
+    prompt('复制以下同步码链接：',link);
   }
 }
 function applyCloudTransferHash(){
@@ -841,7 +940,7 @@ function applyCloudTransferHash(){
   if(obj.a===1||obj.a===true||obj.autoSync)s.autoSync=true;
   setBackupSettings(s);
   try{history.replaceState(null,'',location.pathname+location.search)}catch(e){location.hash=''}
-  showToast('已从换机链接导入云端配置'+(s.autoSync?'（已开自动同步）':''));
+  showToast('已从同步码导入配置'+(s.autoSync?'（已开自动同步）':''));
   setTimeout(function(){openBackupSettings();},200);
   return true;
 }
@@ -892,9 +991,10 @@ async function cloudUpload(opts){
     setBackupSettings(s);
     const gistInput=document.getElementById('cloud-gist-id');
     if(gistInput)gistInput.value=s.gistId;
-    if(!silent){showToast('已上传数据与 Token / Gist ID');openBackupSettings()}
+    if(!silent){showToast('已同步到云端');openBackupSettings()}
     else showToast('已自动同步到云端');
     updateBackupInfo();
+    if(document.getElementById('backup-modal')&&document.getElementById('backup-modal').classList.contains('show'))updateCloudPanels();
     return true;
   }catch(err){
     showToast(silent?'自动上传失败：网络错误':'网络错误，无法连接 GitHub','error');
